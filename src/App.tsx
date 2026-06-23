@@ -47,8 +47,9 @@ type AnswerResultPayload = {
 type QuizSettings = {
   topic: string;
   difficulty: string;
-  questions: number;
+  questions: number | string;
   types: Array<"mcq" | "unscramble">;
+  additionalPrompt: string;
 };
 
 type GeneratedQuiz = {
@@ -83,7 +84,8 @@ function App() {
     topic: "Travel",
     difficulty: "Easy",
     questions: 5,
-    types: ["mcq", "unscramble"]
+    types: ["mcq", "unscramble"],
+    additionalPrompt: ""
   });
   const [generatedQuiz, setGeneratedQuiz] = useState<GeneratedQuiz | null>(null);
   const [savedQuizzes, setSavedQuizzes] = useState<GeneratedQuiz[]>([]);
@@ -282,6 +284,22 @@ function App() {
     socket?.emit("play-again", { roomCode });
   }
 
+  function leaveRoom() {
+    socket?.emit("leave-room");
+    setRoomCode("");
+    setPlayerId("");
+    setIsHost(false);
+    setPlayers([]);
+    setLeaderboard([]);
+    setQuestion(null);
+    setLastResult(null);
+    setScreen("home");
+  }
+
+  function changeQuiz(quiz: GeneratedQuiz) {
+    socket?.emit("change-quiz", { roomCode, quiz });
+  }
+
   return (
     <main className="app-shell">
       <section className="game-frame">
@@ -386,7 +404,10 @@ function App() {
             players={leaderboard}
             isHost={isHost}
             me={me}
+            savedQuizzes={savedQuizzes}
             onPlayAgain={playAgain}
+            onChangeQuiz={changeQuiz}
+            onLeaveRoom={leaveRoom}
           />
         ) : null}
       </section>
@@ -434,32 +455,70 @@ function GenerateScreen({
     updateSettings({ types: nextTypes.length ? nextTypes : [type] });
   }
 
+  const topicSuggestions = [
+    "IELTS Speaking Part 1",
+    "Job interview questions",
+    "Daily Life conversations",
+    "Phrasal verbs for travel",
+    "Business Email Vocabulary",
+    "Technology and AI slang"
+  ];
+
   return (
     <div className="screen-stack">
       <div className="settings-grid">
-        <label>
-          Topic
-          <select value={settings.topic} onChange={(event) => updateSettings({ topic: event.target.value })}>
-            <option>Travel</option>
-            <option>Daily Life</option>
-            <option>School</option>
-            <option>Work</option>
-          </select>
+        <label style={{ gridColumn: "1 / -1" }}>
+          What should the quiz be about? (Topic or Prompt)
+          <textarea
+            value={settings.topic}
+            onChange={(event) => updateSettings({ topic: event.target.value })}
+            placeholder="Describe your desired topic or enter a specific prompt here..."
+            rows={2}
+            style={{ width: "100%", resize: "vertical", marginTop: "0.25rem", padding: "0.5rem", borderRadius: "8px" }}
+          />
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginTop: "0.5rem" }}>
+            {topicSuggestions.map((suggestion) => (
+              <button
+                key={suggestion}
+                type="button"
+                className="ghost-button"
+                style={{ padding: "0.3rem 0.6rem", fontSize: "0.8rem", borderRadius: "12px", border: "1px solid rgba(255,255,255,0.2)" }}
+                onClick={() => updateSettings({ topic: suggestion })}
+              >
+                + {suggestion}
+              </button>
+            ))}
+          </div>
         </label>
         <label>
           Difficulty
           <select value={settings.difficulty} onChange={(event) => updateSettings({ difficulty: event.target.value })}>
+            <option>Beginner</option>
             <option>Easy</option>
             <option>Medium</option>
             <option>Hard</option>
+            <option>IELTS 7.0+</option>
           </select>
+        </label>
+        <label style={{ gridColumn: "1 / -1" }}>
+          Any specific focus or additional instructions?
+          <textarea
+            value={settings.additionalPrompt}
+            onChange={(event) => updateSettings({ additionalPrompt: event.target.value })}
+            placeholder="E.g., Focus on grammar, use only past tense, make it funny..."
+            rows={2}
+            style={{ width: "100%", resize: "vertical", marginTop: "0.25rem", padding: "0.5rem", borderRadius: "8px" }}
+          />
         </label>
         <label>
           Questions
-          <select value={settings.questions} onChange={(event) => updateSettings({ questions: Number(event.target.value) })}>
-            <option>5</option>
-            <option>10</option>
-          </select>
+          <input 
+             type="number" 
+             value={settings.questions} 
+             onChange={(event) => updateSettings({ questions: event.target.value })}
+             min="1" max="50"
+             style={{ width: "100%", padding: "0.5rem", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.2)" }}
+          />
         </label>
       </div>
 
@@ -562,10 +621,14 @@ function RoomsScreen({
         <form className="join-form" onSubmit={onJoin} style={{ margin: 0, display: "flex", gap: "0.5rem" }}>
           <label style={{ flex: 1, marginBottom: 0 }}>
             <input
+              type="text"
+              inputMode="numeric"
+              pattern="\d*"
+              style={{ width: "100%" }}
               value={joinCode}
-              onChange={(event) => onJoinCodeChange(event.target.value.toUpperCase())}
+              onChange={(event) => onJoinCodeChange(event.target.value.replace(/\D/g, ''))}
               maxLength={5}
-              placeholder="Room Code (e.g. AB123)"
+              placeholder="Room Code (e.g. 12345)"
             />
           </label>
           <button className="secondary-button" type="submit" disabled={isJoining}>
@@ -727,14 +790,22 @@ function FinalScreen({
   players,
   isHost,
   me,
-  onPlayAgain
+  savedQuizzes,
+  onPlayAgain,
+  onChangeQuiz,
+  onLeaveRoom
 }: {
   winner?: Player;
   players: Player[];
   isHost: boolean;
   me?: Player;
+  savedQuizzes: GeneratedQuiz[];
   onPlayAgain: () => void;
+  onChangeQuiz: (quiz: GeneratedQuiz) => void;
+  onLeaveRoom: () => void;
 }) {
+  const [showQuizSelector, setShowQuizSelector] = useState(false);
+
   return (
     <div className="screen-stack">
       <div className="winner-panel">
@@ -746,13 +817,44 @@ function FinalScreen({
       {me ? <p className="muted">Your final score: {me.score}</p> : null}
       <PlayerList players={players} showScores />
 
-      {isHost ? (
-        <button className="primary-button" onClick={onPlayAgain}>
-          Play Again
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', width: '100%', marginTop: '1rem' }}>
+        {isHost ? (
+          <>
+            <button className="primary-button" onClick={onPlayAgain}>
+              Play Again (Same Quiz)
+            </button>
+            <button className="secondary-button" onClick={() => setShowQuizSelector(!showQuizSelector)}>
+              Play New Quiz (Keep Room)
+            </button>
+            
+            {showQuizSelector && (
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", maxHeight: "200px", overflowY: "auto", marginTop: "0.5rem", border: "1px solid rgba(255,255,255,0.1)", padding: "0.5rem", borderRadius: "8px" }}>
+                {savedQuizzes.length === 0 ? (
+                  <p className="muted" style={{ margin: "0.5rem 0", textAlign: 'center' }}>No saved quizzes.</p>
+                ) : (
+                  savedQuizzes.map((quiz) => (
+                    <div key={quiz._id || quiz.title} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "rgba(255,255,255,0.05)", padding: "0.5rem", borderRadius: "8px" }}>
+                      <div style={{ display: "flex", flexDirection: "column", textAlign: 'left' }}>
+                        <strong>{quiz.title}</strong>
+                        <span className="muted" style={{ fontSize: "0.8rem" }}>{quiz.topic} - {quiz.difficulty} ({quiz.questions?.length ?? 0} Qs)</span>
+                      </div>
+                      <button className="primary-button" style={{ padding: "0.4rem 0.8rem", fontSize: "0.9rem" }} onClick={() => onChangeQuiz(quiz)}>
+                        Select
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+          </>
+        ) : (
+          <p className="muted" style={{ textAlign: 'center', marginBottom: '1rem' }}>Waiting for host to start a new game...</p>
+        )}
+        
+        <button className="ghost-button" onClick={onLeaveRoom}>
+          Back to Home
         </button>
-      ) : (
-        <p className="muted">Waiting for host...</p>
-      )}
+      </div>
     </div>
   );
 }
