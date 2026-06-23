@@ -1,0 +1,59 @@
+export type Screen = "home" | "generate" | "rooms" | "lobby" | "question" | "result" | "leaderboard" | "final";
+
+export type PublicQuestion =
+  | {
+      type: "mcq";
+      question: string;
+      options: string[];
+    }
+  | {
+      type: "unscramble";
+      question: string;
+    };
+
+export type Player = {
+  id: string;
+  name: string;
+  icon?: string;
+  score: number;
+  connected: boolean;
+  isHost: boolean;
+};
+
+export type QuestionPayload = {
+  roomCode: string;
+  questionNumber: number;
+  totalQuestions: number;
+  durationSeconds: number;
+  startedAt: number;
+  question: PublicQuestion;
+};
+
+export type AnswerResultPayload = {
+  roomCode: string;
+  correctAnswer: string;
+  submissions: {
+    playerId: string;
+    answer: string;
+    correct: boolean;
+    points: number;
+    submittedAt: number;
+  }[];
+  leaderboard: Player[];
+};
+
+export type QuizSettings = {
+  topic: string;
+  difficulty: string;
+  questions: number | string;
+  types: Array<"mcq" | "unscramble">;
+  additionalPrompt: string;
+};
+
+export type GeneratedQuiz = {
+  _id?: string;
+  title: string;
+  topic: string;
+  difficulty: string;
+  questions: PublicQuestion[];
+};

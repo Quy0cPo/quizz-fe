@@ -393,3 +393,27 @@ button:focus-visible {
     width: auto;
   }
 }
+
+/* Leaderboard Feedback Animations */
+.correct-row {
+  background-color: rgba(46, 125, 104, 0.1) !important;
+  border-left: 4px solid #2e7d68 !important;
+}
+
+.incorrect-row {
+  background-color: rgba(184, 59, 46, 0.1) !important;
+  border-left: 4px solid #b83b2e !important;
+}
+
+.points-gained {
+  color: #2e7d68;
+  font-weight: bold;
+  animation: floatUp 1.5s ease-out forwards;
+}
+
+@keyframes floatUp {
+  0% { opacity: 0; transform: translateY(10px); }
+  20% { opacity: 1; transform: translateY(0); }
+  80% { opacity: 1; transform: translateY(-5px); }
+  100% { opacity: 0; transform: translateY(-10px); }
+}

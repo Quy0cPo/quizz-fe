@@ -1,64 +1,14 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { io, Socket } from "socket.io-client";
-
-type Screen = "home" | "generate" | "rooms" | "lobby" | "question" | "result" | "leaderboard" | "final";
-
-type PublicQuestion =
-  | {
-      type: "mcq";
-      question: string;
-      options: string[];
-    }
-  | {
-      type: "unscramble";
-      question: string;
-    };
-
-type Player = {
-  id: string;
-  name: string;
-  score: number;
-  connected: boolean;
-  isHost: boolean;
-};
-
-type QuestionPayload = {
-  roomCode: string;
-  questionNumber: number;
-  totalQuestions: number;
-  durationSeconds: number;
-  startedAt: number;
-  question: PublicQuestion;
-};
-
-type AnswerResultPayload = {
-  roomCode: string;
-  correctAnswer: string;
-  submissions: {
-    playerId: string;
-    answer: string;
-    correct: boolean;
-    points: number;
-    submittedAt: number;
-  }[];
-  leaderboard: Player[];
-};
-
-type QuizSettings = {
-  topic: string;
-  difficulty: string;
-  questions: number | string;
-  types: Array<"mcq" | "unscramble">;
-  additionalPrompt: string;
-};
-
-type GeneratedQuiz = {
-  _id?: string;
-  title: string;
-  topic: string;
-  difficulty: string;
-  questions: PublicQuestion[];
-};
+import { Screen, Player, QuestionPayload, AnswerResultPayload, QuizSettings, GeneratedQuiz } from "./types";
+import { HomeScreen } from "./screens/HomeScreen";
+import { GenerateScreen } from "./screens/GenerateScreen";
+import { RoomsScreen } from "./screens/RoomsScreen";
+import { LobbyScreen } from "./screens/LobbyScreen";
+import { QuestionScreen } from "./screens/QuestionScreen";
+import { ResultScreen } from "./screens/ResultScreen";
+import { LeaderboardScreen } from "./screens/LeaderboardScreen";
+import { FinalScreen } from "./screens/FinalScreen";
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL ?? "http://localhost:4001";
 
@@ -66,6 +16,7 @@ function App() {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [screen, setScreen] = useState<Screen>("home");
   const [name, setName] = useState("");
+  const [icon, setIcon] = useState("🐶");
   const [joinCode, setJoinCode] = useState("");
   const [roomCode, setRoomCode] = useState("");
   const [playerId, setPlayerId] = useState("");
@@ -209,7 +160,7 @@ function App() {
   function createRoom(quizPayload: GeneratedQuiz | null) {
     if (!socket || !requireName()) return;
     setPendingAction("creating");
-    socket.emit("create-room", { name, quiz: quizPayload });
+    socket.emit("create-room", { name, icon, quiz: quizPayload });
   }
 
   function joinRoom(event: FormEvent) {
@@ -222,7 +173,7 @@ function App() {
     }
 
     setPendingAction("joining");
-    socket.emit("join-room", { name, roomCode: joinCode });
+    socket.emit("join-room", { name, icon, roomCode: joinCode });
   }
 
   function startGame() {
@@ -349,11 +300,13 @@ function App() {
         {screen === "rooms" ? (
           <RoomsScreen
             name={name}
+            icon={icon}
             joinCode={joinCode}
             savedQuizzes={savedQuizzes}
             isCreating={pendingAction === "creating"}
             isJoining={pendingAction === "joining"}
             onNameChange={setName}
+            onIconChange={setIcon}
             onJoinCodeChange={setJoinCode}
             onCreateRoomWithQuiz={createRoom}
             onJoin={joinRoom}
@@ -395,6 +348,7 @@ function App() {
           <LeaderboardScreen
             players={leaderboard}
             nextQuestionInSeconds={nextQuestionInSeconds}
+            lastResult={lastResult}
           />
         ) : null}
 
@@ -412,471 +366,6 @@ function App() {
         ) : null}
       </section>
     </main>
-  );
-}
-
-function HomeScreen({ onNavigateGenerate, onNavigateRooms }: { onNavigateGenerate: () => void; onNavigateRooms: () => void }) {
-  return (
-    <div className="screen-stack">
-      <p className="muted">Welcome! Choose an option to start.</p>
-      <button className="primary-button" onClick={onNavigateGenerate}>
-        Generate New Quiz
-      </button>
-      <button className="secondary-button" onClick={onNavigateRooms}>
-        Rooms (Create / Join)
-      </button>
-    </div>
-  );
-}
-
-function GenerateScreen({
-  isGeneratingQuiz,
-  settings,
-  generatedQuiz,
-  onSettingsChange,
-  onBack,
-  onGenerateQuiz,
-  onGoToRooms
-}: {
-  isGeneratingQuiz: boolean;
-  settings: QuizSettings;
-  generatedQuiz: GeneratedQuiz | null;
-  onSettingsChange: (settings: QuizSettings) => void;
-  onBack: () => void;
-  onGenerateQuiz: () => void;
-  onGoToRooms: () => void;
-}) {
-  function updateSettings(nextSettings: Partial<QuizSettings>) {
-    onSettingsChange({ ...settings, ...nextSettings });
-  }
-
-  function updateQuizType(type: "mcq" | "unscramble", checked: boolean) {
-    const nextTypes = checked ? [...settings.types, type] : settings.types.filter((nextType) => nextType !== type);
-    updateSettings({ types: nextTypes.length ? nextTypes : [type] });
-  }
-
-  const topicSuggestions = [
-    "IELTS Speaking Part 1",
-    "Job interview questions",
-    "Daily Life conversations",
-    "Phrasal verbs for travel",
-    "Business Email Vocabulary",
-    "Technology and AI slang"
-  ];
-
-  return (
-    <div className="screen-stack">
-      <div className="settings-grid">
-        <label style={{ gridColumn: "1 / -1" }}>
-          What should the quiz be about? (Topic or Prompt)
-          <textarea
-            value={settings.topic}
-            onChange={(event) => updateSettings({ topic: event.target.value })}
-            placeholder="Describe your desired topic or enter a specific prompt here..."
-            rows={2}
-            style={{ width: "100%", resize: "vertical", marginTop: "0.25rem", padding: "0.5rem", borderRadius: "8px" }}
-          />
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginTop: "0.5rem" }}>
-            {topicSuggestions.map((suggestion) => (
-              <button
-                key={suggestion}
-                type="button"
-                className="ghost-button"
-                style={{ padding: "0.3rem 0.6rem", fontSize: "0.8rem", borderRadius: "12px", border: "1px solid rgba(255,255,255,0.2)" }}
-                onClick={() => updateSettings({ topic: suggestion })}
-              >
-                + {suggestion}
-              </button>
-            ))}
-          </div>
-        </label>
-        <label>
-          Difficulty
-          <select value={settings.difficulty} onChange={(event) => updateSettings({ difficulty: event.target.value })}>
-            <option>Beginner</option>
-            <option>Easy</option>
-            <option>Medium</option>
-            <option>Hard</option>
-            <option>IELTS 7.0+</option>
-          </select>
-        </label>
-        <label style={{ gridColumn: "1 / -1" }}>
-          Any specific focus or additional instructions?
-          <textarea
-            value={settings.additionalPrompt}
-            onChange={(event) => updateSettings({ additionalPrompt: event.target.value })}
-            placeholder="E.g., Focus on grammar, use only past tense, make it funny..."
-            rows={2}
-            style={{ width: "100%", resize: "vertical", marginTop: "0.25rem", padding: "0.5rem", borderRadius: "8px" }}
-          />
-        </label>
-        <label>
-          Questions
-          <input 
-             type="number" 
-             value={settings.questions} 
-             onChange={(event) => updateSettings({ questions: event.target.value })}
-             min="1" max="50"
-             style={{ width: "100%", padding: "0.5rem", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.2)" }}
-          />
-        </label>
-      </div>
-
-      <fieldset className="quiz-type-group">
-        <legend>Quiz Type</legend>
-        <label>
-          <input
-            checked={settings.types.includes("mcq")}
-            type="checkbox"
-            onChange={(event) => updateQuizType("mcq", event.target.checked)}
-          />
-          Multiple Choice
-        </label>
-        <label>
-          <input
-            checked={settings.types.includes("unscramble")}
-            type="checkbox"
-            onChange={(event) => updateQuizType("unscramble", event.target.checked)}
-          />
-          Unscramble
-        </label>
-      </fieldset>
-
-      {generatedQuiz ? (
-        <div className="quiz-summary">
-          <strong>{generatedQuiz.title}</strong>
-          <span>{generatedQuiz.questions.length} questions generated & saved to DB!</span>
-          <button className="primary-button" style={{ marginTop: '0.5rem' }} onClick={onGoToRooms}>
-            Go to Rooms
-          </button>
-        </div>
-      ) : null}
-
-      <button className="primary-button" type="button" disabled={isGeneratingQuiz} onClick={onGenerateQuiz}>
-        {isGeneratingQuiz ? "Generating..." : "Generate Quiz"}
-      </button>
-      <button className="ghost-button" type="button" onClick={onBack}>
-        Back to Home
-      </button>
-    </div>
-  );
-}
-
-function RoomsScreen({
-  name,
-  joinCode,
-  savedQuizzes,
-  isCreating,
-  isJoining,
-  onNameChange,
-  onJoinCodeChange,
-  onCreateRoomWithQuiz,
-  onJoin,
-  onBack
-}: {
-  name: string;
-  joinCode: string;
-  savedQuizzes: GeneratedQuiz[];
-  isCreating: boolean;
-  isJoining: boolean;
-  onNameChange: (value: string) => void;
-  onJoinCodeChange: (value: string) => void;
-  onCreateRoomWithQuiz: (quiz: GeneratedQuiz | null) => void;
-  onJoin: (event: FormEvent) => void;
-  onBack: () => void;
-}) {
-  return (
-    <div className="screen-stack">
-      <label>
-        Your Name
-        <input value={name} onChange={(event) => onNameChange(event.target.value)} placeholder="John" />
-      </label>
-
-      <fieldset className="quiz-type-group" style={{ display: "flex", flexDirection: "column" }}>
-        <legend>Create Room</legend>
-        <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", maxHeight: "200px", overflowY: "auto", marginBottom: "1rem" }}>
-          {savedQuizzes.length === 0 ? (
-            <p className="muted" style={{ margin: "0.5rem 0" }}>No saved quizzes. Go generate some!</p>
-          ) : (
-            savedQuizzes.map((quiz) => (
-              <div key={quiz._id || quiz.title} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "rgba(255,255,255,0.05)", padding: "0.5rem", borderRadius: "8px" }}>
-                <div style={{ display: "flex", flexDirection: "column" }}>
-                  <strong>{quiz.title}</strong>
-                  <span className="muted" style={{ fontSize: "0.8rem" }}>{quiz.topic} - {quiz.difficulty} ({quiz.questions?.length ?? 0} Qs)</span>
-                </div>
-                <button className="primary-button" style={{ padding: "0.4rem 0.8rem", fontSize: "0.9rem" }} disabled={isCreating} onClick={() => onCreateRoomWithQuiz(quiz)}>
-                  Play
-                </button>
-              </div>
-            ))
-          )}
-        </div>
-        <button className="ghost-button" type="button" disabled={isCreating} onClick={() => onCreateRoomWithQuiz(null)}>
-          {isCreating ? "Creating..." : "Create with Sample Quiz"}
-        </button>
-      </fieldset>
-
-      <fieldset className="quiz-type-group" style={{ display: "flex", flexDirection: "column" }}>
-        <legend>Join Room</legend>
-        <form className="join-form" onSubmit={onJoin} style={{ margin: 0, display: "flex", gap: "0.5rem" }}>
-          <label style={{ flex: 1, marginBottom: 0 }}>
-            <input
-              type="text"
-              inputMode="numeric"
-              pattern="\d*"
-              style={{ width: "100%" }}
-              value={joinCode}
-              onChange={(event) => onJoinCodeChange(event.target.value.replace(/\D/g, ''))}
-              maxLength={5}
-              placeholder="Room Code (e.g. 12345)"
-            />
-          </label>
-          <button className="secondary-button" type="submit" disabled={isJoining}>
-            {isJoining ? "Joining..." : "Join"}
-          </button>
-        </form>
-      </fieldset>
-
-      <button className="ghost-button" type="button" onClick={onBack}>
-        Back to Home
-      </button>
-    </div>
-  );
-}
-
-function LobbyScreen({
-  roomCode,
-  players,
-  isHost,
-  isStarting,
-  copiedRoomCode,
-  onCopyRoomCode,
-  onStart
-}: {
-  roomCode: string;
-  players: Player[];
-  isHost: boolean;
-  isStarting: boolean;
-  copiedRoomCode: boolean;
-  onCopyRoomCode: () => void;
-  onStart: () => void;
-}) {
-  return (
-    <div className="screen-stack">
-      <div className="room-code">
-        <span>Room</span>
-        <strong>{roomCode}</strong>
-      </div>
-      <button className="ghost-button" type="button" onClick={onCopyRoomCode}>
-        {copiedRoomCode ? "Copied!" : "Copy Room Code"}
-      </button>
-
-      <PlayerList players={players} />
-
-      {isHost ? (
-        <button className="primary-button" disabled={isStarting} onClick={onStart}>
-          {isStarting ? "Starting..." : "Start Game"}
-        </button>
-      ) : (
-        <p className="muted">Waiting for host...</p>
-      )}
-    </div>
-  );
-}
-
-function QuestionScreen({
-  payload,
-  answer,
-  submitted,
-  onAnswerChange,
-  onSubmit
-}: {
-  payload: QuestionPayload;
-  answer: string;
-  submitted: boolean;
-  onAnswerChange: (value: string) => void;
-  onSubmit: (answer: string) => void;
-}) {
-  const [remaining, setRemaining] = useState(payload.durationSeconds);
-
-  useEffect(() => {
-    const interval = window.setInterval(() => {
-      const elapsed = Math.floor((Date.now() - payload.startedAt) / 1000);
-      setRemaining(Math.max(payload.durationSeconds - elapsed, 0));
-    }, 250);
-
-    return () => window.clearInterval(interval);
-  }, [payload.durationSeconds, payload.startedAt]);
-
-  const progress = `${(remaining / payload.durationSeconds) * 100}%`;
-
-  return (
-    <div className="screen-stack">
-      <div className="question-meta">
-        <span>
-          Question {payload.questionNumber} / {payload.totalQuestions}
-        </span>
-        <strong>{remaining}s</strong>
-      </div>
-      <div className="timer-track">
-        <div className="timer-bar" style={{ width: progress }} />
-      </div>
-
-      {payload.question.type === "mcq" ? (
-        <>
-          <h2>{payload.question.question}</h2>
-          <div className="answer-grid">
-            {payload.question.options.map((option, index) => (
-              <button
-                className="answer-card"
-                disabled={submitted}
-                key={option}
-                onClick={() => onSubmit(option)}
-              >
-                <span>{String.fromCharCode(65 + index)}</span>
-                {option}
-              </button>
-            ))}
-          </div>
-        </>
-      ) : (
-        <>
-          <p className="muted">Rearrange letters</p>
-          <h2 className="scramble-word">{payload.question.question}</h2>
-          <form
-            className="screen-stack compact"
-            onSubmit={(event) => {
-              event.preventDefault();
-              onSubmit(answer);
-            }}
-          >
-            <input value={answer} disabled={submitted} onChange={(event) => onAnswerChange(event.target.value)} placeholder="Your answer" />
-            <button className="primary-button" type="submit" disabled={submitted}>
-              {submitted ? "Submitted" : "Submit"}
-            </button>
-          </form>
-        </>
-      )}
-
-      {submitted ? <p className="muted">Answer submitted. Waiting for the round result...</p> : null}
-    </div>
-  );
-}
-
-function ResultScreen({ submission, correctAnswer, rank }: { submission?: AnswerResultPayload["submissions"][number]; correctAnswer: string; rank: number }) {
-  const isCorrect = Boolean(submission?.correct);
-
-  return (
-    <div className="result-panel">
-      <p className={isCorrect ? "result-correct" : "result-wrong"}>{isCorrect ? "Correct!" : "Wrong!"}</p>
-      <h2>{isCorrect ? `+${submission?.points ?? 0} points` : `Correct Answer: ${correctAnswer}`}</h2>
-      <p className="muted">Current Rank #{rank || "-"}</p>
-    </div>
-  );
-}
-
-function LeaderboardScreen({ players, nextQuestionInSeconds }: { players: Player[]; nextQuestionInSeconds: number }) {
-  return (
-    <div className="screen-stack">
-      <h2>Leaderboard</h2>
-      <PlayerList players={players} showScores />
-      {nextQuestionInSeconds > 0 ? <p className="muted">Next question starts in {nextQuestionInSeconds}...</p> : null}
-    </div>
-  );
-}
-
-function FinalScreen({
-  winner,
-  players,
-  isHost,
-  me,
-  savedQuizzes,
-  onPlayAgain,
-  onChangeQuiz,
-  onLeaveRoom
-}: {
-  winner?: Player;
-  players: Player[];
-  isHost: boolean;
-  me?: Player;
-  savedQuizzes: GeneratedQuiz[];
-  onPlayAgain: () => void;
-  onChangeQuiz: (quiz: GeneratedQuiz) => void;
-  onLeaveRoom: () => void;
-}) {
-  const [showQuizSelector, setShowQuizSelector] = useState(false);
-
-  return (
-    <div className="screen-stack">
-      <div className="winner-panel">
-        <p>Game Over</p>
-        <h2>{winner?.name ?? "No winner"}</h2>
-        <strong>{winner?.score ?? 0} points</strong>
-      </div>
-
-      {me ? <p className="muted">Your final score: {me.score}</p> : null}
-      <PlayerList players={players} showScores />
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', width: '100%', marginTop: '1rem' }}>
-        {isHost ? (
-          <>
-            <button className="primary-button" onClick={onPlayAgain}>
-              Play Again (Same Quiz)
-            </button>
-            <button className="secondary-button" onClick={() => setShowQuizSelector(!showQuizSelector)}>
-              Play New Quiz (Keep Room)
-            </button>
-            
-            {showQuizSelector && (
-              <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", maxHeight: "200px", overflowY: "auto", marginTop: "0.5rem", border: "1px solid rgba(255,255,255,0.1)", padding: "0.5rem", borderRadius: "8px" }}>
-                {savedQuizzes.length === 0 ? (
-                  <p className="muted" style={{ margin: "0.5rem 0", textAlign: 'center' }}>No saved quizzes.</p>
-                ) : (
-                  savedQuizzes.map((quiz) => (
-                    <div key={quiz._id || quiz.title} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "rgba(255,255,255,0.05)", padding: "0.5rem", borderRadius: "8px" }}>
-                      <div style={{ display: "flex", flexDirection: "column", textAlign: 'left' }}>
-                        <strong>{quiz.title}</strong>
-                        <span className="muted" style={{ fontSize: "0.8rem" }}>{quiz.topic} - {quiz.difficulty} ({quiz.questions?.length ?? 0} Qs)</span>
-                      </div>
-                      <button className="primary-button" style={{ padding: "0.4rem 0.8rem", fontSize: "0.9rem" }} onClick={() => onChangeQuiz(quiz)}>
-                        Select
-                      </button>
-                    </div>
-                  ))
-                )}
-              </div>
-            )}
-          </>
-        ) : (
-          <p className="muted" style={{ textAlign: 'center', marginBottom: '1rem' }}>Waiting for host to start a new game...</p>
-        )}
-        
-        <button className="ghost-button" onClick={onLeaveRoom}>
-          Back to Home
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function PlayerList({ players, showScores = false }: { players: Player[]; showScores?: boolean }) {
-  if (players.length === 0) {
-    return <p className="muted">No players yet.</p>;
-  }
-
-  return (
-    <ol className="player-list">
-      {players.map((player, index) => (
-        <li key={player.id}>
-          <span className="rank">{index + 1}</span>
-          <span className={!player.connected ? "offline" : ""}>
-            {player.name}
-            {player.isHost ? " (Host)" : ""}
-          </span>
-          {showScores ? <strong>{player.score}</strong> : null}
-        </li>
-      ))}
-    </ol>
   );
 }
 
