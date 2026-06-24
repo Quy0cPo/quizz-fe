@@ -154,11 +154,13 @@ function App() {
       setSubmitted(false);
       setLastResult(null);
       setPendingAction(null);
+      setError("");
       setScreen("question");
     });
 
     nextSocket.on("countdown-start", ({ seconds }: { seconds: number }) => {
       setCountdownSeconds(seconds);
+      setError("");
       setScreen("countdown");
     });
 
@@ -181,6 +183,7 @@ function App() {
 
     nextSocket.on("answer-submitted", () => {
       setSubmitted(true);
+      setError("");
     });
 
     nextSocket.on("answer-result", (payload: AnswerResultPayload) => {
