@@ -10,6 +10,8 @@ import { ResultScreen } from "./screens/ResultScreen";
 import { LeaderboardScreen } from "./screens/LeaderboardScreen";
 import { FinalScreen } from "./screens/FinalScreen";
 import { CountdownScreen } from "./screens/CountdownScreen";
+import { ChatPanel } from "./components/chat/ChatPanel";
+import { EmoteOverlay } from "./components/EmoteOverlay";
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL ?? "http://localhost:4001";
 
@@ -91,6 +93,17 @@ function App() {
       setScreen("home");
     }
   }, [screenState, roomCode]);
+
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (roomCode && screenState !== "final") {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [roomCode, screenState]);
 
   function loadSavedQuizzes() {
     fetch(`${SERVER_URL}/api/quizzes`)
@@ -328,7 +341,8 @@ function App() {
 
   return (
     <main className="app-shell">
-      <section className="game-frame">
+      <div className={`layout-container ${roomCode ? "with-chat" : ""}`}>
+        <section className="game-frame">
         <header className="topbar">
           <div>
             <p className="eyebrow">OPIC Practice</p>
@@ -337,6 +351,19 @@ function App() {
           {roomCode ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
               <span className="room-pill">{roomCode}</span>
+              {isHost && screen !== "lobby" && screen !== "final" && (
+                <button 
+                  className="ghost-button" 
+                  style={{ padding: '4px 12px', height: 'auto', minHeight: '32px', color: '#b83b2e' }} 
+                  onClick={() => {
+                    if (confirm("Are you sure you want to end the game early?")) {
+                      socket?.emit("end-game-early", { roomCode });
+                    }
+                  }}
+                >
+                  End Game
+                </button>
+              )}
               <button 
                 className="ghost-button" 
                 style={{ padding: '4px 12px', height: 'auto', minHeight: '32px' }} 
@@ -445,6 +472,8 @@ function App() {
             players={leaderboard}
             nextQuestionInSeconds={nextQuestionInSeconds}
             lastResult={lastResult}
+            socket={socket}
+            roomCode={roomCode}
           />
         ) : null}
 
@@ -460,7 +489,10 @@ function App() {
             onLeaveRoom={leaveRoom}
           />
         ) : null}
-      </section>
+        </section>
+        {roomCode && <ChatPanel socket={socket} roomCode={roomCode} playerId={playerId} />}
+      </div>
+      {roomCode && <EmoteOverlay socket={socket} />}
     </main>
   );
 }

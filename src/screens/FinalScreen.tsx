@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Confetti from "react-confetti";
 import { Player, GeneratedQuiz } from "../types";
 import { PlayerList } from "../components/PlayerList";
 
@@ -25,13 +26,13 @@ export function FinalScreen({
 
   return (
     <div className="screen-stack">
+      <Confetti recycle={false} numberOfPieces={500} gravity={0.15} />
       <div className="winner-panel">
         <p>Game Over</p>
         <h2>{winner?.name ?? "No winner"}</h2>
         <strong>{winner?.score ?? 0} points</strong>
       </div>
 
-      {me ? <p className="muted">Your final score: {me.score}</p> : null}
       <PlayerList players={players} showScores />
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', width: '100%', marginTop: '1rem' }}>

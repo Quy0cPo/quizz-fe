@@ -19,20 +19,28 @@ export function PlayerList({ players, showScores = false, lastResult, renderExtr
         }
 
         return (
-          <motion.li key={player.id} layout initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className={rowClass}>
-            <span className="rank">{index + 1}</span>
-            <span className={!player.connected ? "offline" : ""}>
-              <span style={{ marginRight: '0.25rem' }}>{player.icon ?? "🐶"}</span>
-              {player.name}
-              {player.isHost ? " (Host)" : ""}
-            </span>
-            {showScores ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                {pointsGained > 0 && <span className="points-gained">+{pointsGained}</span>}
-                <strong>{player.score}</strong>
-              </div>
-            ) : null}
-            {renderExtra ? renderExtra(player) : null}
+          <motion.li key={player.id} layout initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className={`player-row ${rowClass}`}>
+            <div className="player-row-left">
+              <span className="rank">{index + 1}</span>
+              <span className={!player.connected ? "offline" : ""}>
+                <span className="player-icon">{player.icon ?? "🐶"}</span>
+                <span className="player-name">{player.name}</span>
+                {player.isHost && <span className="host-badge">Host</span>}
+                {(player.streak ?? 0) > 1 && (
+                  <span className="streak-badge">🔥 x{player.streak}</span>
+                )}
+              </span>
+            </div>
+
+            <div className="player-row-right">
+              {showScores && (
+                <div className="player-score-container">
+                  {pointsGained > 0 && <span className="points-gained">+{pointsGained}</span>}
+                  <strong className="player-score">{player.score}</strong>
+                </div>
+              )}
+              {renderExtra && renderExtra(player)}
+            </div>
           </motion.li>
         );
       })}

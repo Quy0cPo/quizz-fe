@@ -19,6 +19,7 @@ export type Player = {
   connected: boolean;
   isHost: boolean;
   isReady?: boolean;
+  streak?: number;
 };
 
 export type QuestionPayload = {
@@ -39,6 +40,7 @@ export type AnswerResultPayload = {
     answer: string;
     correct: boolean;
     points: number;
+    streak?: number;
     submittedAt: number;
   }[];
   leaderboard: Player[];

@@ -75,6 +75,7 @@ export function LobbyScreen({
       ) : (
         <p className="muted">Waiting for host...</p>
       )}
+
     </div>
   );
 }
