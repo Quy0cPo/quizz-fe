@@ -417,3 +417,72 @@ button:focus-visible {
   80% { opacity: 1; transform: translateY(-5px); }
   100% { opacity: 0; transform: translateY(-10px); }
 }
+
+/* New feature styles */
+
+.quiz-title-badge {
+  background: #edf7f4;
+  color: #205c4c;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  margin: 0;
+  display: inline-block;
+  align-self: flex-start;
+  border: 1px solid #cfe8df;
+}
+
+.ready-badge {
+  background: #edf7f4;
+  color: #205c4c;
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.not-ready-badge {
+  background: #fff0ed;
+  color: #9d2d1f;
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.kick-button {
+  background: #fff0ed;
+  color: #9d2d1f;
+  border: 1px solid #ffc7bb;
+  border-radius: 4px;
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  padding: 0;
+  margin-left: 4px;
+}
+
+.kick-button:hover {
+  background: #ffdcd3;
+}
+
+.countdown-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 40vh;
+  text-align: center;
+}
+
+.countdown-number {
+  font-size: 6rem;
+  color: #2e7d68;
+  margin: 0 0 10px 0;
+  line-height: 1;
+}

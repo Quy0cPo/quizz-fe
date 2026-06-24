@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { Player, AnswerResultPayload } from "../types";
 
-export function PlayerList({ players, showScores = false, lastResult }: { players: Player[]; showScores?: boolean; lastResult?: AnswerResultPayload | null }) {
+export function PlayerList({ players, showScores = false, lastResult, renderExtra }: { players: Player[]; showScores?: boolean; lastResult?: AnswerResultPayload | null; renderExtra?: (player: Player) => React.ReactNode }) {
   if (players.length === 0) {
     return <p className="muted">No players yet.</p>;
   }
@@ -32,6 +32,7 @@ export function PlayerList({ players, showScores = false, lastResult }: { player
                 <strong>{player.score}</strong>
               </div>
             ) : null}
+            {renderExtra ? renderExtra(player) : null}
           </motion.li>
         );
       })}

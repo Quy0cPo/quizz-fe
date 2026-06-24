@@ -9,14 +9,57 @@ import { QuestionScreen } from "./screens/QuestionScreen";
 import { ResultScreen } from "./screens/ResultScreen";
 import { LeaderboardScreen } from "./screens/LeaderboardScreen";
 import { FinalScreen } from "./screens/FinalScreen";
+import { CountdownScreen } from "./screens/CountdownScreen";
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL ?? "http://localhost:4001";
 
+function generateSessionId() {
+  return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+}
+
 function App() {
   const [socket, setSocket] = useState<Socket | null>(null);
-  const [screen, setScreen] = useState<Screen>("home");
-  const [name, setName] = useState("");
-  const [icon, setIcon] = useState("🐶");
+  
+  const getInitialScreen = (): Screen => {
+    const hash = window.location.hash.replace("#", "") as Screen;
+    const validScreens: Screen[] = ["home", "generate", "rooms", "lobby", "countdown", "question", "result", "leaderboard", "final"];
+    return validScreens.includes(hash) ? hash : "home";
+  };
+  const [screenState, setScreenState] = useState<Screen>(getInitialScreen);
+
+  const screen = screenState;
+  const setScreen = (newScreen: Screen) => {
+    setScreenState(newScreen);
+    window.location.hash = newScreen;
+  };
+
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.replace("#", "") as Screen;
+      const validScreens: Screen[] = ["home", "generate", "rooms", "lobby", "countdown", "question", "result", "leaderboard", "final"];
+      if (validScreens.includes(hash)) {
+        setScreenState(hash);
+      }
+    };
+    window.addEventListener("hashchange", handleHashChange);
+    return () => window.removeEventListener("hashchange", handleHashChange);
+  }, []);
+
+  const [name, setName] = useState(() => localStorage.getItem("playerName") || "");
+  const [icon, setIcon] = useState(() => localStorage.getItem("playerIcon") || "🐶");
+  const [sessionId] = useState(() => {
+    const stored = localStorage.getItem("playerSessionId");
+    if (stored) return stored;
+    const newSession = generateSessionId();
+    localStorage.setItem("playerSessionId", newSession);
+    return newSession;
+  });
+
+  useEffect(() => { localStorage.setItem("playerName", name); }, [name]);
+  useEffect(() => { localStorage.setItem("playerIcon", icon); }, [icon]);
+
+  const [countdownSeconds, setCountdownSeconds] = useState(0);
+
   const [joinCode, setJoinCode] = useState("");
   const [roomCode, setRoomCode] = useState("");
   const [playerId, setPlayerId] = useState("");
@@ -41,6 +84,13 @@ function App() {
   const [generatedQuiz, setGeneratedQuiz] = useState<GeneratedQuiz | null>(null);
   const [savedQuizzes, setSavedQuizzes] = useState<GeneratedQuiz[]>([]);
   const [copiedRoomCode, setCopiedRoomCode] = useState(false);
+
+  useEffect(() => {
+    const requiresRoom = ["lobby", "countdown", "question", "result", "leaderboard", "final"].includes(screenState);
+    if (requiresRoom && !roomCode) {
+      setScreen("home");
+    }
+  }, [screenState, roomCode]);
 
   function loadSavedQuizzes() {
     fetch(`${SERVER_URL}/api/quizzes`)
@@ -107,6 +157,28 @@ function App() {
       setScreen("question");
     });
 
+    nextSocket.on("countdown-start", ({ seconds }: { seconds: number }) => {
+      setCountdownSeconds(seconds);
+      setScreen("countdown");
+    });
+
+    nextSocket.on("answer-wrong", ({ message }: { message: string }) => {
+      setError(message);
+      setSubmitted(false);
+    });
+
+    nextSocket.on("kicked", () => {
+      setRoomCode("");
+      setPlayerId("");
+      setIsHost(false);
+      setPlayers([]);
+      setLeaderboard([]);
+      setQuestion(null);
+      setLastResult(null);
+      setError("You were kicked from the room by the host.");
+      setScreen("home");
+    });
+
     nextSocket.on("answer-submitted", () => {
       setSubmitted(true);
     });
@@ -160,7 +232,7 @@ function App() {
   function createRoom(quizPayload: GeneratedQuiz | null) {
     if (!socket || !requireName()) return;
     setPendingAction("creating");
-    socket.emit("create-room", { name, icon, quiz: quizPayload });
+    socket.emit("create-room", { name, icon, sessionId, quiz: quizPayload });
   }
 
   function joinRoom(event: FormEvent) {
@@ -173,7 +245,7 @@ function App() {
     }
 
     setPendingAction("joining");
-    socket.emit("join-room", { name, icon, roomCode: joinCode });
+    socket.emit("join-room", { name, icon, sessionId, roomCode: joinCode });
   }
 
   function startGame() {
@@ -259,7 +331,22 @@ function App() {
             <p className="eyebrow">OPIC Practice</p>
             <h1>OPIC Quiz Battle</h1>
           </div>
-          {roomCode ? <span className="room-pill">{roomCode}</span> : null}
+          {roomCode ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <span className="room-pill">{roomCode}</span>
+              <button 
+                className="ghost-button" 
+                style={{ padding: '4px 12px', height: 'auto', minHeight: '32px' }} 
+                onClick={() => {
+                  if (confirm("Are you sure you want to quit the game?")) {
+                    leaveRoom();
+                  }
+                }}
+              >
+                Quit
+              </button>
+            </div>
+          ) : null}
         </header>
 
         {error ? <div className="alert">{error}</div> : null}
@@ -323,7 +410,13 @@ function App() {
             copiedRoomCode={copiedRoomCode}
             onCopyRoomCode={copyRoomCode}
             onStart={startGame}
+            onLeaveRoom={leaveRoom}
+            socket={socket}
           />
+        ) : null}
+
+        {screen === "countdown" ? (
+          <CountdownScreen initialSeconds={countdownSeconds} />
         ) : null}
 
         {screen === "question" && question ? (

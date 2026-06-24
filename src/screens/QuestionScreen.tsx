@@ -29,6 +29,9 @@ export function QuestionScreen({
 
   return (
     <div className="screen-stack">
+      {payload.quizTitle && (
+        <h3 className="quiz-title-badge">{payload.quizTitle}</h3>
+      )}
       <div className="question-meta">
         <span>
           Question {payload.questionNumber} / {payload.totalQuestions}

@@ -1,4 +1,4 @@
-export type Screen = "home" | "generate" | "rooms" | "lobby" | "question" | "result" | "leaderboard" | "final";
+export type Screen = "home" | "generate" | "rooms" | "lobby" | "countdown" | "question" | "result" | "leaderboard" | "final";
 
 export type PublicQuestion =
   | {
@@ -18,10 +18,12 @@ export type Player = {
   score: number;
   connected: boolean;
   isHost: boolean;
+  isReady?: boolean;
 };
 
 export type QuestionPayload = {
   roomCode: string;
+  quizTitle?: string;
   questionNumber: number;
   totalQuestions: number;
   durationSeconds: number;
