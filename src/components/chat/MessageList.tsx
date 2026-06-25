@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react";
 export type ChatMessage = {
   playerId: string;
   name: string;
+  icon?: string;
   message: string;
   timestamp: number;
 };
@@ -25,7 +26,7 @@ export function MessageList({ messages, currentPlayerId }: { messages: ChatMessa
         const isSelf = msg.playerId === currentPlayerId;
         return (
           <div key={idx} className={`chat-message ${isSelf ? "self" : "other"}`}>
-            {!isSelf && <span className="chat-name">{msg.name}</span>}
+            {!isSelf && <span className="chat-name">{msg.icon || "👤"} {msg.name}</span>}
             <div className="chat-bubble">
               <span className="chat-text">{msg.message}</span>
               <span className="chat-time">
