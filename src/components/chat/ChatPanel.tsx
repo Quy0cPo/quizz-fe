@@ -31,7 +31,10 @@ export function ChatPanel({ socket, roomCode, playerId }: { socket: Socket | nul
     socket.emit("send-emote", { roomCode, emote });
   };
 
-  const lastMessage = messages.length > 0 ? messages[messages.length - 1].message : "No messages yet. Say hi!";
+  const lastMessageObj = messages.length > 0 ? messages[messages.length - 1] : null;
+  const lastMessagePreview = lastMessageObj 
+    ? `${lastMessageObj.icon || "👤"} ${lastMessageObj.name}: ${lastMessageObj.message}` 
+    : "No messages yet. Say hi!";
 
   return (
     <>
@@ -46,8 +49,8 @@ export function ChatPanel({ socket, roomCode, playerId }: { socket: Socket | nul
           </div>
           {!isExpanded && (
             <div className="chat-preview">
-              <span className="muted" style={{ fontSize: '0.8rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '150px' }}>
-                {lastMessage}
+              <span className="muted" style={{ fontSize: '0.8rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '200px', display: 'inline-block' }}>
+                {lastMessagePreview}
               </span>
             </div>
           )}
