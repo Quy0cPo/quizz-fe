@@ -541,13 +541,38 @@ button:focus-visible {
   }
 
   .layout-container.with-chat .game-frame {
-    flex: 1;
+    flex: 7;
     margin: 0;
     max-width: none;
   }
 
   .layout-container.with-chat .chat-panel {
-    /* override any side-panel stuff since we use bottom sheet globally now */
+    flex: 3;
+    min-width: 300px;
+    max-width: 400px;
+    height: 100%;
+    margin-top: 0;
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+    position: relative;
+    border: 1px solid #edf2f7;
+  }
+
+  .chat-backdrop {
+    display: none !important;
+  }
+
+  .chat-panel.collapsed .chat-panel-content {
+    display: flex !important;
+  }
+
+  .chat-panel .chat-preview,
+  .chat-panel .chat-toggle-btn {
+    display: none !important;
+  }
+
+  .chat-panel-header {
+    cursor: default !important;
   }
 }
 
@@ -572,6 +597,10 @@ button:focus-visible {
   margin-top: auto;
   max-width: 900px; /* match layout-container */
   width: 100%;
+}
+
+.chat-panel.collapsed .chat-panel-content {
+  display: none;
 }
 
 .chat-panel.expanded {

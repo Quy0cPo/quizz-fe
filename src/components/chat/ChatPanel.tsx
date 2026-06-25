@@ -59,13 +59,11 @@ export function ChatPanel({ socket, roomCode, playerId }: { socket: Socket | nul
           </button>
         </div>
         
-        {isExpanded && (
-          <div className="chat-panel-content">
-            <ReactionBar onSendReaction={handleSendReaction} />
-            <MessageList messages={messages} currentPlayerId={playerId} />
-            <MessageInput onSendMessage={handleSendMessage} />
-          </div>
-        )}
+        <div className="chat-panel-content">
+          <ReactionBar onSendReaction={handleSendReaction} />
+          <MessageList messages={messages} currentPlayerId={playerId} />
+          <MessageInput onSendMessage={handleSendMessage} />
+        </div>
       </div>
     </>
   );
