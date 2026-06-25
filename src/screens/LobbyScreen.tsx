@@ -4,6 +4,7 @@ import { Socket } from "socket.io-client";
 
 export function LobbyScreen({
   roomCode,
+  quizTitle,
   players,
   isHost,
   isStarting,
@@ -14,6 +15,7 @@ export function LobbyScreen({
   socket
 }: {
   roomCode: string;
+  quizTitle?: string;
   players: Player[];
   isHost: boolean;
   isStarting: boolean;
@@ -29,8 +31,14 @@ export function LobbyScreen({
 
   return (
     <div className="screen-stack" style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, paddingBottom: '80px', gap: '16px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '4px' }}>
-        <div className="room-code" style={{ padding: '8px 24px', margin: 0, flex: 1, justifyContent: 'center', gap: '12px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+        {quizTitle && (
+          <h2 style={{ margin: 0, fontSize: '1.2rem', textAlign: 'center', color: '#2d3748' }}>
+            {quizTitle}
+          </h2>
+        )}
+        <div style={{ display: 'flex', width: '100%', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+          <div className="room-code" style={{ padding: '8px 24px', margin: 0, flex: 1, justifyContent: 'center', gap: '12px' }}>
           <span style={{ fontSize: '0.9rem' }}>Room</span>
           <strong style={{ fontSize: '2.2rem' }}>{roomCode}</strong>
         </div>

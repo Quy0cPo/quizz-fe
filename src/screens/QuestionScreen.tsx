@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { QuestionPayload } from "../types";
 
 export function QuestionScreen({
@@ -14,18 +14,42 @@ export function QuestionScreen({
   onAnswerChange: (value: string) => void;
   onSubmit: (answer: string) => void;
 }) {
-  const [remaining, setRemaining] = useState(payload.durationSeconds);
+  const barRef = useRef<HTMLDivElement>(null);
+  const textRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
-    const interval = window.setInterval(() => {
-      const elapsed = Math.floor((Date.now() - payload.startedAt) / 1000);
-      setRemaining(Math.max(payload.durationSeconds - elapsed, 0));
-    }, 250);
+    let animationFrameId: number;
 
-    return () => window.clearInterval(interval);
+    const updateTimer = () => {
+      const elapsed = (Date.now() - payload.startedAt) / 1000;
+      const timeLeft = Math.max(payload.durationSeconds - elapsed, 0);
+      const progress = (timeLeft / payload.durationSeconds) * 100;
+
+      if (barRef.current) {
+        barRef.current.style.width = `${progress}%`;
+        
+        // Add urgency classes in final 5 seconds
+        if (timeLeft <= 5 && timeLeft > 0) {
+          barRef.current.classList.add("urgent");
+        } else {
+          barRef.current.classList.remove("urgent");
+        }
+      }
+
+      if (textRef.current) {
+        // Only show ceiling whole seconds to match traditional timers
+        textRef.current.innerText = `${Math.ceil(timeLeft)}s`;
+      }
+
+      if (timeLeft > 0) {
+        animationFrameId = requestAnimationFrame(updateTimer);
+      }
+    };
+
+    animationFrameId = requestAnimationFrame(updateTimer);
+
+    return () => cancelAnimationFrame(animationFrameId);
   }, [payload.durationSeconds, payload.startedAt]);
-
-  const progress = `${(remaining / payload.durationSeconds) * 100}%`;
 
   return (
     <div className="screen-stack">
@@ -36,10 +60,10 @@ export function QuestionScreen({
         <span>
           Question {payload.questionNumber} / {payload.totalQuestions}
         </span>
-        <strong>{remaining}s</strong>
+        <strong ref={textRef}>{payload.durationSeconds}s</strong>
       </div>
       <div className="timer-track">
-        <div className="timer-bar" style={{ width: progress }} />
+        <div ref={barRef} className="timer-bar" />
       </div>
 
       {payload.question.type === "mcq" ? (

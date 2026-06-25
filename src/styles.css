@@ -330,12 +330,32 @@ button:focus-visible {
   border-radius: 999px;
   height: 14px;
   overflow: hidden;
+  position: relative;
 }
 
 .timer-bar {
   background: #e0a22f;
   height: 100%;
-  transition: width 0.2s linear;
+  width: 100%;
+  /* No width transition; handled frame-by-frame by requestAnimationFrame */
+  transition: background-color 0.5s ease, box-shadow 0.5s ease;
+}
+
+.timer-bar.urgent {
+  background: #ef4444;
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.6);
+  animation: pulse-urgent 1s infinite alternate ease-in-out;
+}
+
+@keyframes pulse-urgent {
+  from {
+    opacity: 1;
+    box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
+  }
+  to {
+    opacity: 0.8;
+    box-shadow: 0 0 16px rgba(239, 68, 68, 0.8);
+  }
 }
 
 .answer-grid {

@@ -62,8 +62,8 @@ function App() {
 
   const [countdownSeconds, setCountdownSeconds] = useState(0);
 
-  const [joinCode, setJoinCode] = useState("");
   const [roomCode, setRoomCode] = useState("");
+  const [quizTitle, setQuizTitle] = useState("");
   const [playerId, setPlayerId] = useState("");
   const [isHost, setIsHost] = useState(false);
   const [players, setPlayers] = useState<Player[]>([]);
@@ -144,19 +144,21 @@ function App() {
       setPendingAction(null);
     });
 
-    nextSocket.on("room-created", ({ roomCode: createdCode, playerId: id }: { roomCode: string; playerId: string }) => {
+    nextSocket.on("room-created", ({ roomCode: createdCode, playerId: id, quizTitle: title }: { roomCode: string; playerId: string; quizTitle?: string }) => {
       setRoomCode(createdCode);
       setPlayerId(id);
+      if (title) setQuizTitle(title);
       setIsHost(true);
       setPendingAction(null);
       setScreen("lobby");
       setError("");
     });
 
-    nextSocket.on("room-joined", ({ roomCode: joinedCode, playerId: id, isHost: host }: { roomCode: string; playerId: string; isHost: boolean }) => {
+    nextSocket.on("room-joined", ({ roomCode: joinedCode, playerId: id, isHost: host, quizTitle: title }: { roomCode: string; playerId: string; isHost: boolean; quizTitle?: string }) => {
       setRoomCode(joinedCode);
       setPlayerId(id);
       setIsHost(host);
+      if (title) setQuizTitle(title);
       setPendingAction(null);
       setScreen("lobby");
       setError("");
@@ -191,6 +193,7 @@ function App() {
 
     nextSocket.on("kicked", () => {
       setRoomCode("");
+      setQuizTitle("");
       setPlayerId("");
       setIsHost(false);
       setPlayers([]);
@@ -438,9 +441,10 @@ function App() {
           />
         ) : null}
 
-        {screen === "lobby" ? (
-          <LobbyScreen
+        {screen === "lobby" && (
+          <LobbyScreen 
             roomCode={roomCode}
+            quizTitle={quizTitle}
             players={players}
             isHost={isHost}
             isStarting={pendingAction === "starting"}
