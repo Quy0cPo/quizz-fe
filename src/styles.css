@@ -565,19 +565,13 @@ button:focus-visible {
   box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
   z-index: 50;
+  position: relative;
   transition: transform 0.3s ease-out, height 0.3s ease-out;
   margin: 0 auto;
+  margin-top: auto;
   max-width: 900px; /* match layout-container */
-}
-
-.chat-panel.collapsed {
-  height: auto;
-  cursor: pointer;
+  width: 100%;
 }
 
 .chat-panel.expanded {
