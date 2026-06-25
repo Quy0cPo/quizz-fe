@@ -90,7 +90,10 @@ function App() {
   useEffect(() => {
     const requiresRoom = ["lobby", "countdown", "question", "result", "leaderboard", "final"].includes(screenState);
     if (requiresRoom && !roomCode) {
-      setScreen("home");
+      const timeout = setTimeout(() => {
+        setScreen("home");
+      }, 100);
+      return () => clearTimeout(timeout);
     }
   }, [screenState, roomCode]);
 
@@ -126,6 +129,10 @@ function App() {
 
     nextSocket.on("connect", () => {
       setError("");
+      // Auto-rejoin if we already have a room code and sessionId
+      if (roomCode && name && sessionId) {
+        nextSocket.emit("join-room", { name, icon, roomCode, sessionId });
+      }
     });
 
     nextSocket.on("connect_error", () => {
