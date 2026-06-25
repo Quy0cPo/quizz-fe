@@ -76,7 +76,7 @@ export function RoomsScreen({
                   value={name} 
                   onChange={(event) => onNameChange(event.target.value)} 
                   placeholder="Enter your name" 
-                  className="w-full text-sm h-11 bg-slate-50 border-transparent focus:bg-white focus:ring-2 focus:ring-slate-900 transition-all font-bold"
+                  className="w-full text-base sm:text-sm h-11 bg-slate-50 border-transparent focus:bg-white focus:ring-2 focus:ring-slate-900 transition-all font-bold"
                 />
               </div>
               <div>
