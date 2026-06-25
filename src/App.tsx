@@ -62,6 +62,7 @@ function App() {
 
   const [countdownSeconds, setCountdownSeconds] = useState(0);
 
+  const [joinCode, setJoinCode] = useState("");
   const [roomCode, setRoomCode] = useState("");
   const [quizTitle, setQuizTitle] = useState("");
   const [playerId, setPlayerId] = useState("");
