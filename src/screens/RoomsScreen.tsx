@@ -81,15 +81,15 @@ export function RoomsScreen({
               </div>
               <div>
                 <label className="block text-xs font-bold text-slate-600 mb-2.5">Avatar</label>
-                <div className="grid grid-cols-4 lg:grid-cols-5 gap-2 w-full">
+                <div className="grid grid-cols-8 gap-1.5 sm:gap-2 w-full">
                   {ICONS.map((i) => (
                     <button
                       key={i}
                       type="button"
                       className={cn(
-                        "w-full aspect-square lg:aspect-auto lg:h-12 flex items-center justify-center rounded-xl text-2xl transition-all",
+                        "w-full aspect-square flex items-center justify-center rounded-lg sm:rounded-xl text-xl sm:text-2xl transition-all",
                         icon === i 
-                          ? "bg-slate-900 text-white shadow-md ring-2 ring-slate-900 ring-offset-2" 
+                          ? "bg-slate-900 text-white shadow-md ring-2 ring-slate-900 ring-offset-1" 
                           : "bg-slate-50 hover:bg-slate-100 active:scale-95 border border-slate-100"
                       )}
                       onClick={() => onIconChange(i)}
