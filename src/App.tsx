@@ -351,158 +351,177 @@ function App() {
   }
 
   return (
-    <main className="app-shell">
-      <div className={`layout-container ${roomCode ? "with-chat" : ""}`}>
-        <section className="game-frame">
-        <header className="topbar">
-          <div>
-            <p className="eyebrow">OPIC Practice</p>
-            <h1>OPIC Quiz Battle</h1>
-          </div>
-          {roomCode ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              {screen !== "lobby" && <span className="room-pill">{roomCode}</span>}
-              {isHost && screen !== "lobby" && screen !== "final" && (
-                <button 
-                  className="ghost-button" 
-                  style={{ padding: '4px 12px', height: 'auto', minHeight: '32px', color: '#b83b2e' }} 
-                  onClick={() => {
-                    if (confirm("Are you sure you want to end the game early?")) {
-                      socket?.emit("end-game-early", { roomCode });
-                    }
-                  }}
-                >
-                  End Game
-                </button>
-              )}
+    <main className="h-screen w-full bg-white text-slate-900 flex flex-col overflow-hidden">
+      {/* Global Application Header */}
+      <header className="px-3 sm:px-5 py-2.5 sm:py-3 border-b border-slate-100 flex items-center justify-between bg-white z-40 shrink-0">
+        <div className="min-w-0 pr-4">
+          <p className="text-[10px] sm:text-xs font-bold text-emerald-600 uppercase tracking-wider mb-0.5">OPIC Practice</p>
+          <h1 className="text-lg sm:text-xl md:text-2xl font-black text-slate-800 tracking-tight leading-tight truncate">OPIC Quiz Battle</h1>
+        </div>
+        {roomCode ? (
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            {screen !== "lobby" && (
+              <span className="hidden sm:inline-block bg-slate-100 text-slate-700 font-bold px-3 py-1.5 rounded-lg text-sm border border-slate-200">
+                {roomCode}
+              </span>
+            )}
+            {isHost && screen !== "lobby" && screen !== "final" && (
               <button 
-                className="ghost-button" 
-                style={{ padding: '4px 12px', height: 'auto', minHeight: '32px' }} 
+                className="bg-red-50 text-red-600 px-3 py-1.5 rounded-lg text-sm font-semibold hover:bg-red-100 transition-colors"
                 onClick={() => {
-                  if (confirm("Are you sure you want to quit the game?")) {
-                    leaveRoom();
+                  if (confirm("Are you sure you want to end the game early?")) {
+                    socket?.emit("end-game-early", { roomCode });
                   }
                 }}
               >
-                Quit
+                End Game
               </button>
+            )}
+            <button 
+              className="text-slate-600 px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-slate-100 transition-colors"
+              onClick={() => {
+                if (confirm("Are you sure you want to quit the game?")) {
+                  leaveRoom();
+                }
+              }}
+            >
+              Quit
+            </button>
+          </div>
+        ) : null}
+      </header>
+
+      {/* Main App Container */}
+      <div className="flex-1 flex flex-col lg:flex-row min-h-0 w-full bg-white relative">
+        
+        {/* Dynamic Screen Content (Container for ScreenFrame) */}
+        <div className="flex-1 flex flex-col overflow-hidden relative min-h-0 w-full">
+          {error && (
+            <div className="absolute top-3 left-1/2 -translate-x-1/2 w-full max-w-lg px-4 z-50">
+              <div className="p-3 bg-red-50 border border-red-200 text-red-600 rounded-xl text-sm font-medium shadow-lg">
+                {error}
+              </div>
             </div>
+          )}
+
+          {screen === "home" ? (
+            <HomeScreen
+              onNavigateGenerate={() => {
+                setError("");
+                setScreen("generate");
+              }}
+              onNavigateRooms={() => {
+                setError("");
+                loadSavedQuizzes();
+                setScreen("rooms");
+              }}
+            />
           ) : null}
-        </header>
 
-        {error ? <div className="alert">{error}</div> : null}
+          {screen === "generate" ? (
+            <GenerateScreen
+              isGeneratingQuiz={isGeneratingQuiz}
+              settings={quizSettings}
+              generatedQuiz={generatedQuiz}
+              onSettingsChange={(settings) => {
+                setQuizSettings(settings);
+                setGeneratedQuiz(null);
+              }}
+              onBack={() => setScreen("home")}
+              onGenerateQuiz={generateQuiz}
+              onGoToRooms={() => {
+                setError("");
+                loadSavedQuizzes();
+                setScreen("rooms");
+              }}
+            />
+          ) : null}
 
-        {screen === "home" ? (
-          <HomeScreen
-            onNavigateGenerate={() => {
-              setError("");
-              setScreen("generate");
-            }}
-            onNavigateRooms={() => {
-              setError("");
-              loadSavedQuizzes();
-              setScreen("rooms");
-            }}
-          />
-        ) : null}
+          {screen === "rooms" ? (
+            <RoomsScreen
+              name={name}
+              icon={icon}
+              joinCode={joinCode}
+              savedQuizzes={savedQuizzes}
+              isCreating={pendingAction === "creating"}
+              isJoining={pendingAction === "joining"}
+              onNameChange={setName}
+              onIconChange={setIcon}
+              onJoinCodeChange={setJoinCode}
+              onCreateRoomWithQuiz={createRoom}
+              onJoin={joinRoom}
+              onBack={() => setScreen("home")}
+            />
+          ) : null}
 
-        {screen === "generate" ? (
-          <GenerateScreen
-            isGeneratingQuiz={isGeneratingQuiz}
-            settings={quizSettings}
-            generatedQuiz={generatedQuiz}
-            onSettingsChange={(settings) => {
-              setQuizSettings(settings);
-              setGeneratedQuiz(null);
-            }}
-            onBack={() => setScreen("home")}
-            onGenerateQuiz={generateQuiz}
-            onGoToRooms={() => {
-              setError("");
-              loadSavedQuizzes();
-              setScreen("rooms");
-            }}
-          />
-        ) : null}
+          {screen === "lobby" && (
+            <LobbyScreen 
+              roomCode={roomCode}
+              quizTitle={quizTitle}
+              players={players}
+              isHost={isHost}
+              isStarting={pendingAction === "starting"}
+              copiedRoomCode={copiedRoomCode}
+              onCopyRoomCode={copyRoomCode}
+              onStart={startGame}
+              onLeaveRoom={leaveRoom}
+              socket={socket}
+            />
+          )}
 
-        {screen === "rooms" ? (
-          <RoomsScreen
-            name={name}
-            icon={icon}
-            joinCode={joinCode}
-            savedQuizzes={savedQuizzes}
-            isCreating={pendingAction === "creating"}
-            isJoining={pendingAction === "joining"}
-            onNameChange={setName}
-            onIconChange={setIcon}
-            onJoinCodeChange={setJoinCode}
-            onCreateRoomWithQuiz={createRoom}
-            onJoin={joinRoom}
-            onBack={() => setScreen("home")}
-          />
-        ) : null}
+          {screen === "countdown" ? (
+            <CountdownScreen initialSeconds={countdownSeconds} />
+          ) : null}
 
-        {screen === "lobby" && (
-          <LobbyScreen 
-            roomCode={roomCode}
-            quizTitle={quizTitle}
-            players={players}
-            isHost={isHost}
-            isStarting={pendingAction === "starting"}
-            copiedRoomCode={copiedRoomCode}
-            onCopyRoomCode={copyRoomCode}
-            onStart={startGame}
-            onLeaveRoom={leaveRoom}
-            socket={socket}
-          />
+          {screen === "question" && question ? (
+            <QuestionScreen
+              payload={question}
+              answer={answer}
+              submitted={submitted}
+              onAnswerChange={setAnswer}
+              onSubmit={submitAnswer}
+            />
+          ) : null}
+
+          {screen === "result" ? (
+            <ResultScreen
+              submission={mySubmission}
+              correctAnswer={lastResult?.correctAnswer ?? ""}
+              rank={leaderboard.findIndex((player) => player.id === playerId) + 1}
+            />
+          ) : null}
+
+          {screen === "leaderboard" ? (
+            <LeaderboardScreen
+              players={leaderboard}
+              nextQuestionInSeconds={nextQuestionInSeconds}
+              lastResult={lastResult}
+              socket={socket}
+              roomCode={roomCode}
+            />
+          ) : null}
+
+          {screen === "final" ? (
+            <FinalScreen
+              winner={winner}
+              players={leaderboard}
+              isHost={isHost}
+              me={me}
+              savedQuizzes={savedQuizzes}
+              onPlayAgain={playAgain}
+              onChangeQuiz={changeQuiz}
+              onLeaveRoom={leaveRoom}
+            />
+          ) : null}
+        </div>
+        
+        {/* Chat Sidebar (Responsive: Drawer on mobile, Sidebar on desktop) */}
+        {roomCode && (
+          <div className="w-full lg:w-[340px] lg:max-w-[340px] flex shrink-0 lg:border-l border-slate-100 bg-white/50">
+            <ChatPanel socket={socket} roomCode={roomCode} playerId={playerId} />
+          </div>
         )}
 
-        {screen === "countdown" ? (
-          <CountdownScreen initialSeconds={countdownSeconds} />
-        ) : null}
-
-        {screen === "question" && question ? (
-          <QuestionScreen
-            payload={question}
-            answer={answer}
-            submitted={submitted}
-            onAnswerChange={setAnswer}
-            onSubmit={submitAnswer}
-          />
-        ) : null}
-
-        {screen === "result" ? (
-          <ResultScreen
-            submission={mySubmission}
-            correctAnswer={lastResult?.correctAnswer ?? ""}
-            rank={leaderboard.findIndex((player) => player.id === playerId) + 1}
-          />
-        ) : null}
-
-        {screen === "leaderboard" ? (
-          <LeaderboardScreen
-            players={leaderboard}
-            nextQuestionInSeconds={nextQuestionInSeconds}
-            lastResult={lastResult}
-            socket={socket}
-            roomCode={roomCode}
-          />
-        ) : null}
-
-        {screen === "final" ? (
-          <FinalScreen
-            winner={winner}
-            players={leaderboard}
-            isHost={isHost}
-            me={me}
-            savedQuizzes={savedQuizzes}
-            onPlayAgain={playAgain}
-            onChangeQuiz={changeQuiz}
-            onLeaveRoom={leaveRoom}
-          />
-        ) : null}
-        </section>
-        {roomCode && <ChatPanel socket={socket} roomCode={roomCode} playerId={playerId} />}
       </div>
       {roomCode && <EmoteOverlay socket={socket} />}
     </main>

@@ -1,6 +1,10 @@
 import { Player } from "../types";
-import { PlayerList } from "../components/PlayerList";
 import { Socket } from "socket.io-client";
+import { motion } from "framer-motion";
+import { Copy, Check, Users, Play, UserX, Crown } from "lucide-react";
+import { Button } from "../components/ui/Button";
+import { ScreenFrame } from "../components/ui/ScreenFrame";
+import { cn } from "../lib/utils";
 
 export function LobbyScreen({
   roomCode,
@@ -30,71 +34,157 @@ export function LobbyScreen({
   const allReady = players.every(p => p.isReady);
 
   return (
-    <div className="screen-stack" style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, paddingBottom: '80px', gap: '16px' }}>
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-        {quizTitle && (
-          <h2 style={{ margin: 0, fontSize: '1.2rem', textAlign: 'center', color: '#2d3748' }}>
-            {quizTitle}
-          </h2>
-        )}
-        <div style={{ display: 'flex', width: '100%', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-          <div className="room-code" style={{ padding: '8px 24px', margin: 0, flex: 1, justifyContent: 'center', gap: '12px' }}>
-          <span style={{ fontSize: '0.9rem' }}>Room</span>
-          <strong style={{ fontSize: '2.2rem' }}>{roomCode}</strong>
-        </div>
-        <button 
-          className="ghost-button" 
-          type="button" 
-          onClick={onCopyRoomCode}
-          style={{ width: 'auto', padding: '0 16px', height: '100%', minHeight: '60px' }}
-          title="Copy Room Code"
-        >
-          {copiedRoomCode ? "✅" : "📋"}
-        </button>
-        </div>
-      </div>
+    <ScreenFrame variant="form" maxWidth="3xl">
+      <div className="flex flex-col h-full gap-6">
+        
+        {/* Top Info Block */}
+        <div className="flex flex-col sm:flex-row gap-6 items-stretch">
+          
+          {/* Left Info */}
+          <div className="flex-1 flex flex-col justify-center space-y-3">
+            <div className="inline-flex items-center self-start justify-center px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 font-bold text-[10px] uppercase tracking-widest border border-emerald-100">
+              Waiting Room
+            </div>
+            
+            {quizTitle && (
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-800 leading-tight">
+                {quizTitle}
+              </h2>
+            )}
+            <p className="text-slate-500 font-medium text-sm">Ask your friends to join using this code:</p>
+          </div>
 
-      <div className="player-list-container">
-        <PlayerList 
-          players={players} 
-          renderExtra={(player) => (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginLeft: 'auto' }}>
-              {!player.isHost && (
-                <span className={player.isReady ? "ready-badge" : "not-ready-badge"}>
-                  {player.isReady ? "Ready" : "Not Ready"}
-                </span>
-              )}
-              {isHost && !player.isHost && (
-                <button 
-                  className="kick-button" 
-                  onClick={() => socket?.emit("kick-player", { roomCode, targetId: player.id })}
-                  title="Kick Player"
+          {/* Right Code Box */}
+          <div className="shrink-0 w-full sm:w-72">
+            <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 flex flex-col gap-2 h-full justify-center shadow-sm">
+              <span className="text-slate-400 font-bold uppercase tracking-widest text-[10px] ml-1">Room Code</span>
+              <div className="flex items-stretch gap-2">
+                <div className="flex-1 flex items-center justify-center text-3xl font-black text-emerald-600 tracking-[0.2em] uppercase bg-white py-2.5 rounded-xl border-2 border-emerald-100 shadow-sm">
+                  {roomCode}
+                </div>
+                <Button 
+                  variant="outline" 
+                  className="w-14 shrink-0 px-0 bg-white border-2 border-slate-200 hover:bg-emerald-50 hover:border-emerald-200 transition-all shadow-sm group"
+                  onClick={onCopyRoomCode}
+                  title="Copy Code"
                 >
-                  ✕
-                </button>
-              )}
+                  {copiedRoomCode ? (
+                    <Check className="w-5 h-5 text-emerald-600" />
+                  ) : (
+                    <Copy className="w-5 h-5 text-slate-400 group-hover:text-emerald-600 transition-colors" />
+                  )}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Action Button */}
+        <div className="shrink-0 w-full">
+          {!isHost && me && (
+            <Button 
+              size="md"
+              variant={me.isReady ? "outline" : "primary"}
+              className={`w-full h-14 text-lg shadow-lg shadow-slate-900/10 ${me.isReady ? "border-emerald-500 text-emerald-600 hover:bg-emerald-50 bg-white" : "bg-slate-900 hover:bg-black"}`}
+              onClick={() => socket?.emit("toggle-ready", { roomCode })}
+            >
+              {me.isReady ? (
+                <span className="flex items-center gap-2"><Check className="w-6 h-6" /> Ready!</span>
+              ) : "Click to Ready up"}
+            </Button>
+          )}
+          
+          {isHost && (
+            <Button 
+              size="md" 
+              className="w-full h-14 text-lg group shadow-lg shadow-indigo-600/20 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none"
+              disabled={isStarting || !allReady} 
+              onClick={onStart}
+            >
+              {isStarting ? "Starting..." : (!allReady ? "Waiting for players to ready..." : (
+                <span className="flex items-center gap-2">
+                  Start Game
+                  <Play className="w-6 h-6 fill-current group-hover:translate-x-1 transition-transform" />
+                </span>
+              ))}
+            </Button>
+          )}
+          
+          {!me && !isHost && (
+            <div className="bg-slate-50 border border-slate-200 text-slate-500 font-bold p-4 text-base rounded-xl text-center">
+              Waiting for host to start...
             </div>
           )}
-        />
-      </div>
+        </div>
 
-      <div className="sticky-bottom-action">
-        {!isHost && me && (
-          <button 
-            className={me.isReady ? "primary-button" : "secondary-button"} 
-            onClick={() => socket?.emit("toggle-ready", { roomCode })}
-          >
-            {me.isReady ? "I'm Ready!" : "Click to Ready up"}
-          </button>
-        )}
-        {isHost ? (
-          <button className="primary-button" disabled={isStarting || !allReady} onClick={onStart}>
-            {isStarting ? "Starting..." : (!allReady ? "Waiting for players to ready..." : "Start Game")}
-          </button>
-        ) : (
-          !me && <p className="muted" style={{ textAlign: "center", margin: 0 }}>Waiting for host...</p>
-        )}
+        {/* Players Panel */}
+        <div className="flex-1 w-full flex flex-col min-h-0 bg-slate-50/50 rounded-3xl border border-slate-100 p-3 sm:p-5">
+          <div className="flex items-center justify-between border-b border-slate-200 pb-3 mb-4 shrink-0 px-1">
+            <h3 className="text-lg font-black text-slate-800 flex items-center gap-2">
+              <Users className="w-5 h-5 text-slate-400" />
+              Players Joined
+              <span className="bg-slate-200 text-slate-700 text-xs px-2.5 py-0.5 rounded-full font-bold">{players.length}</span>
+            </h3>
+          </div>
+
+          {/* Player Grid */}
+          <div className="flex-1 overflow-y-auto custom-scrollbar px-1">
+            {players.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full text-slate-400 gap-3 py-8">
+                <Users className="w-12 h-12 opacity-20" />
+                <p className="font-bold text-base">Waiting for players...</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
+                {players.map((player) => (
+                  <motion.div 
+                    key={player.id}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className={cn(
+                      "flex flex-col items-center p-3 rounded-2xl border-2 transition-all relative overflow-hidden group",
+                      player.isReady ? "bg-emerald-50 border-emerald-200" : "bg-white border-slate-200 hover:border-slate-300 shadow-sm"
+                    )}
+                  >
+                    <div className={cn("text-3xl mb-1.5 transition-transform group-hover:scale-110", !player.connected && "opacity-50 grayscale")}>
+                      {player.icon ?? "🐶"}
+                    </div>
+                    
+                    <div className="w-full text-center">
+                      <span className="font-bold text-slate-800 text-sm truncate block w-full">
+                        {player.name}
+                      </span>
+                      <span className={cn(
+                        "text-[10px] font-black uppercase tracking-wider mt-0.5 block",
+                        player.isReady ? "text-emerald-600" : "text-slate-400"
+                      )}>
+                        {player.isReady ? "Ready" : "Waiting"}
+                      </span>
+                    </div>
+
+                    {player.isHost && (
+                      <div className="absolute top-1.5 left-1.5 bg-amber-100 text-amber-600 p-1 rounded-full">
+                        <Crown className="w-3 h-3 fill-amber-500" />
+                      </div>
+                    )}
+
+                    {isHost && !player.isHost && (
+                      <button 
+                        className="absolute top-1.5 right-1.5 bg-red-50 text-red-500 p-1.5 rounded-full opacity-0 group-hover:opacity-100 hover:bg-red-100 hover:text-red-600 transition-all shadow-sm"
+                        onClick={() => socket?.emit("kick-player", { roomCode, targetId: player.id })}
+                        title="Kick Player"
+                      >
+                        <UserX className="w-3 h-3" />
+                      </button>
+                    )}
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
       </div>
-    </div>
+    </ScreenFrame>
   );
 }

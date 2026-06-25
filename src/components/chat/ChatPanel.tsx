@@ -3,6 +3,9 @@ import { Socket } from "socket.io-client";
 import { MessageList, ChatMessage } from "./MessageList";
 import { MessageInput } from "./MessageInput";
 import { ReactionBar } from "./ReactionBar";
+import { motion, AnimatePresence } from "framer-motion";
+import { MessageCircle, ChevronDown, ChevronUp, Bell } from "lucide-react";
+import { cn } from "../../lib/utils";
 
 export function ChatPanel({ socket, roomCode, playerId }: { socket: Socket | null; roomCode: string; playerId: string }) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -13,7 +16,6 @@ export function ChatPanel({ socket, roomCode, playerId }: { socket: Socket | nul
     if (!socket) return;
 
     const handleMessage = (msg: ChatMessage) => {
-      // If message is not from self and chat is not expanded, increment unread count
       if (msg.playerId !== playerId && !isExpanded) {
         setUnreadCount((count) => count + 1);
       }
@@ -43,43 +45,74 @@ export function ChatPanel({ socket, roomCode, playerId }: { socket: Socket | nul
 
   return (
     <>
-      {/* Backdrop for mobile */}
-      {isExpanded && <div className="chat-backdrop" onClick={() => setIsExpanded(false)} />}
+      <AnimatePresence>
+        {isExpanded && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="md:hidden fixed inset-0 bg-slate-900/20 backdrop-blur-sm z-40" 
+            onClick={() => setIsExpanded(false)} 
+          />
+        )}
+      </AnimatePresence>
       
-      <div className={`chat-panel ${isExpanded ? "expanded" : "collapsed"}`}>
-        <div className="chat-panel-header" onClick={() => {
-          setIsExpanded(!isExpanded);
-          setUnreadCount(0);
-        }} style={{ cursor: 'pointer' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <h3 style={{ display: 'flex', alignItems: 'center' }}>
-              Lobby Chat
-            </h3>
-            <span className="online-count">🟢 Online</span>
-          </div>
-          {!isExpanded && (
-            <div className="chat-preview">
-              <span className="muted" style={{ fontSize: '0.8rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '200px', display: 'inline-block' }}>
-                {lastMessagePreview}
-              </span>
-            </div>
+      <div className={cn(
+        "flex flex-col bg-white border border-slate-200/60 shadow-xl transition-all duration-300 z-50",
+        "fixed md:relative bottom-0 right-0 left-0 md:bottom-auto md:right-auto md:left-auto",
+        "md:w-full md:h-full md:rounded-3xl md:overflow-hidden",
+        isExpanded ? "h-[70vh] rounded-t-3xl" : "h-[52px]"
+      )}>
+        <button 
+          onClick={() => {
+            setIsExpanded(!isExpanded);
+            setUnreadCount(0);
+          }} 
+          className={cn(
+            "flex items-center justify-between px-4 py-2.5 border-b border-slate-100 bg-white/80 backdrop-blur-md transition-colors w-full text-left",
+            !isExpanded && "hover:bg-slate-50",
+            "md:cursor-default md:hover:bg-transparent"
           )}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            {unreadCount > 0 && !isExpanded && (
-              <span className="unread-badge">
-                {unreadCount > 9 ? "9+" : unreadCount}
-              </span>
-            )}
-            <button className="chat-toggle-btn" aria-label="Toggle Chat">
-              {isExpanded ? "▼" : "▲"}
-            </button>
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 relative shrink-0">
+              <MessageCircle className="w-5 h-5" />
+              <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full"></span>
+            </div>
+            <div className="flex flex-col overflow-hidden">
+              <h3 className="font-semibold text-slate-800 text-sm flex items-center gap-2">
+                Room Chat
+              </h3>
+              {!isExpanded && (
+                <span className="text-xs font-medium text-slate-500 truncate max-w-[180px] md:max-w-[200px]">
+                  {lastMessagePreview}
+                </span>
+              )}
+            </div>
           </div>
-        </div>
+
+          <div className="flex items-center gap-3">
+            {unreadCount > 0 && !isExpanded && (
+              <div className="flex items-center gap-1 bg-red-100 text-red-600 px-2 py-1 rounded-lg font-bold text-xs animate-bounce">
+                <Bell className="w-3 h-3" />
+                {unreadCount > 9 ? "9+" : unreadCount}
+              </div>
+            )}
+            <div className="md:hidden w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500">
+              {isExpanded ? <ChevronDown className="w-5 h-5" /> : <ChevronUp className="w-5 h-5" />}
+            </div>
+          </div>
+        </button>
         
-        <div className="chat-panel-content">
+        <div className={cn(
+          "flex-1 flex flex-col min-h-0 bg-slate-50/50",
+          !isExpanded && "hidden md:flex"
+        )}>
           <ReactionBar onSendReaction={handleSendReaction} />
           <MessageList messages={messages} currentPlayerId={playerId} />
-          <MessageInput onSendMessage={handleSendMessage} />
+          <div className="p-3 bg-white border-t border-slate-100">
+            <MessageInput onSendMessage={handleSendMessage} />
+          </div>
         </div>
       </div>
     </>
