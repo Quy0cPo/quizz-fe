@@ -81,13 +81,13 @@ export function RoomsScreen({
               </div>
               <div>
                 <label className="block text-xs font-bold text-slate-600 mb-2.5">Avatar</label>
-                <div className="flex lg:grid lg:grid-cols-5 gap-2 overflow-x-auto lg:overflow-visible pb-2 lg:pb-0 custom-scrollbar w-full">
+                <div className="grid grid-cols-4 lg:grid-cols-5 gap-2 w-full">
                   {ICONS.map((i) => (
                     <button
                       key={i}
                       type="button"
                       className={cn(
-                        "w-10 h-10 lg:w-full lg:h-12 shrink-0 flex items-center justify-center rounded-xl text-xl lg:text-2xl transition-all",
+                        "w-full aspect-square lg:aspect-auto lg:h-12 flex items-center justify-center rounded-xl text-2xl transition-all",
                         icon === i 
                           ? "bg-slate-900 text-white shadow-md ring-2 ring-slate-900 ring-offset-2" 
                           : "bg-slate-50 hover:bg-slate-100 active:scale-95 border border-slate-100"
