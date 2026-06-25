@@ -454,7 +454,7 @@ function App() {
             onLeaveRoom={leaveRoom}
             socket={socket}
           />
-        ) : null}
+        )}
 
         {screen === "countdown" ? (
           <CountdownScreen initialSeconds={countdownSeconds} />

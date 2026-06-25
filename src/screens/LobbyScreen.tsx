@@ -51,6 +51,7 @@ export function LobbyScreen({
         >
           {copiedRoomCode ? "✅" : "📋"}
         </button>
+        </div>
       </div>
 
       <div className="player-list-container">
