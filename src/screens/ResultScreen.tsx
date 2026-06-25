@@ -19,7 +19,7 @@ export function ResultScreen({ submission, correctAnswer, rank }: { submission?:
           transition={{ type: "spring", stiffness: 300, damping: 15 }}
           className={cn(
             "w-24 h-24 sm:w-32 sm:h-32 md:w-36 md:h-36 rounded-full flex items-center justify-center shadow-2xl",
-            isCorrect ? "bg-emerald-500 shadow-emerald-500/40" : "bg-red-500 shadow-red-500/40"
+            isCorrect ? "bg-emerald-500 shadow-emerald-500/40" : "bg-rose-500 shadow-rose-500/40"
           )}
         >
           {isCorrect ? (
@@ -32,11 +32,11 @@ export function ResultScreen({ submission, correctAnswer, rank }: { submission?:
         <div className="space-y-2">
           <h2 className={cn(
             "text-3xl sm:text-4xl md:text-5xl font-black tracking-tight",
-            isCorrect ? "text-emerald-500" : "text-red-500"
+            isCorrect ? "text-emerald-500" : "text-rose-500"
           )}>
             {isCorrect ? "Correct!" : "Wrong!"}
           </h2>
-          <p className="text-lg sm:text-xl md:text-2xl font-bold text-slate-700 mt-2">
+          <p className="text-lg sm:text-xl md:text-2xl font-bold text-slate-300 mt-2">
             {isCorrect ? `+${submission?.points ?? 0} points` : `Answer: ${correctAnswer}`}
           </p>
         </div>
@@ -46,10 +46,10 @@ export function ResultScreen({ submission, correctAnswer, rank }: { submission?:
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-        className="mt-4 bg-white border border-slate-200 shadow-sm rounded-2xl px-6 py-3 flex flex-col items-center gap-1"
+        className="mt-4 bg-slate-900 border border-slate-800 shadow-sm rounded-2xl px-6 py-3 flex flex-col items-center gap-1"
       >
-        <span className="text-sm font-bold text-slate-400 uppercase tracking-widest">Current Rank</span>
-        <span className="text-2xl font-black text-indigo-600">#{rank || "-"}</span>
+        <span className="text-sm font-bold text-slate-500 uppercase tracking-widest">Current Rank</span>
+        <span className="text-2xl font-black text-indigo-400">#{rank || "-"}</span>
       </motion.div>
     </motion.div>
   );

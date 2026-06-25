@@ -42,36 +42,36 @@ export function LobbyScreen({
           
           {/* Left Info */}
           <div className="flex-1 flex flex-col justify-center space-y-3">
-            <div className="inline-flex items-center self-start justify-center px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 font-bold text-[10px] uppercase tracking-widest border border-emerald-100">
+            <div className="inline-flex items-center self-start justify-center px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 font-bold text-[10px] uppercase tracking-widest border border-emerald-500/20">
               Waiting Room
             </div>
             
             {quizTitle && (
-              <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-800 leading-tight">
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-50 leading-tight">
                 {quizTitle}
               </h2>
             )}
-            <p className="text-slate-500 font-medium text-sm">Ask your friends to join using this code:</p>
+            <p className="text-slate-400 font-medium text-sm">Ask your friends to join using this code:</p>
           </div>
 
           {/* Right Code Box */}
           <div className="shrink-0 w-full sm:w-72">
-            <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 flex flex-col gap-2 h-full justify-center shadow-sm">
+            <div className="bg-slate-900 rounded-2xl p-4 border border-slate-800 flex flex-col gap-2 h-full justify-center shadow-xl">
               <span className="text-slate-400 font-bold uppercase tracking-widest text-[10px] ml-1">Room Code</span>
               <div className="flex items-stretch gap-2">
-                <div className="flex-1 flex items-center justify-center text-3xl font-black text-emerald-600 tracking-[0.2em] uppercase bg-white py-2.5 rounded-xl border-2 border-emerald-100 shadow-sm">
+                <div className="flex-1 flex items-center justify-center text-3xl font-black text-emerald-500 tracking-[0.2em] uppercase bg-slate-950 py-2.5 rounded-xl border-2 border-slate-800 shadow-sm">
                   {roomCode}
                 </div>
                 <Button 
                   variant="outline" 
-                  className="w-14 shrink-0 px-0 bg-white border-2 border-slate-200 hover:bg-emerald-50 hover:border-emerald-200 transition-all shadow-sm group"
+                  className="w-14 shrink-0 px-0 bg-slate-950 border-2 border-slate-800 hover:bg-slate-800 hover:border-slate-700 transition-all shadow-sm group"
                   onClick={onCopyRoomCode}
                   title="Copy Code"
                 >
                   {copiedRoomCode ? (
-                    <Check className="w-5 h-5 text-emerald-600" />
+                    <Check className="w-5 h-5 text-emerald-500" />
                   ) : (
-                    <Copy className="w-5 h-5 text-slate-400 group-hover:text-emerald-600 transition-colors" />
+                    <Copy className="w-5 h-5 text-slate-400 group-hover:text-emerald-500 transition-colors" />
                   )}
                 </Button>
               </div>
@@ -85,7 +85,7 @@ export function LobbyScreen({
             <Button 
               size="md"
               variant={me.isReady ? "outline" : "primary"}
-              className={`w-full h-14 text-lg shadow-lg shadow-slate-900/10 ${me.isReady ? "border-emerald-500 text-emerald-600 hover:bg-emerald-50 bg-white" : "bg-slate-900 hover:bg-black"}`}
+              className={`w-full h-14 text-lg shadow-lg shadow-emerald-900/20 ${me.isReady ? "border-emerald-500/50 text-emerald-400 hover:bg-emerald-900/30 bg-slate-900" : "bg-emerald-600 hover:bg-emerald-500"}`}
               onClick={() => socket?.emit("toggle-ready", { roomCode })}
             >
               {me.isReady ? (
@@ -97,7 +97,7 @@ export function LobbyScreen({
           {isHost && (
             <Button 
               size="md" 
-              className="w-full h-14 text-lg group shadow-lg shadow-indigo-600/20 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none"
+              className="w-full h-14 text-lg group shadow-lg shadow-indigo-900/20 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-800 disabled:text-slate-500 disabled:shadow-none"
               disabled={isStarting || !allReady} 
               onClick={onStart}
             >
@@ -111,26 +111,26 @@ export function LobbyScreen({
           )}
           
           {!me && !isHost && (
-            <div className="bg-slate-50 border border-slate-200 text-slate-500 font-bold p-4 text-base rounded-xl text-center">
+            <div className="bg-slate-900 border border-slate-800 text-slate-400 font-bold p-4 text-base rounded-xl text-center">
               Waiting for host to start...
             </div>
           )}
         </div>
 
         {/* Players Panel */}
-        <div className="flex-1 w-full flex flex-col min-h-0 bg-slate-50/50 rounded-3xl border border-slate-100 p-3 sm:p-5">
-          <div className="flex items-center justify-between border-b border-slate-200 pb-3 mb-4 shrink-0 px-1">
-            <h3 className="text-lg font-black text-slate-800 flex items-center gap-2">
+        <div className="flex-1 w-full flex flex-col min-h-0 bg-slate-900/50 rounded-3xl border border-slate-800 p-3 sm:p-5">
+          <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-4 shrink-0 px-1">
+            <h3 className="text-lg font-black text-slate-50 flex items-center gap-2">
               <Users className="w-5 h-5 text-slate-400" />
               Players Joined
-              <span className="bg-slate-200 text-slate-700 text-xs px-2.5 py-0.5 rounded-full font-bold">{players.length}</span>
+              <span className="bg-slate-800 text-slate-300 text-xs px-2.5 py-0.5 rounded-full font-bold">{players.length}</span>
             </h3>
           </div>
 
           {/* Player Grid */}
           <div className="flex-1 overflow-y-auto custom-scrollbar px-1">
             {players.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full text-slate-400 gap-3 py-8">
+              <div className="flex flex-col items-center justify-center h-full text-slate-500 gap-3 py-8">
                 <Users className="w-12 h-12 opacity-20" />
                 <p className="font-bold text-base">Waiting for players...</p>
               </div>
@@ -143,7 +143,7 @@ export function LobbyScreen({
                     animate={{ opacity: 1, scale: 1 }}
                     className={cn(
                       "flex flex-col items-center p-3 rounded-2xl border-2 transition-all relative overflow-hidden group",
-                      player.isReady ? "bg-emerald-50 border-emerald-200" : "bg-white border-slate-200 hover:border-slate-300 shadow-sm"
+                      player.isReady ? "bg-emerald-500/10 border-emerald-500/30" : "bg-slate-900 border-slate-800 hover:border-slate-700 shadow-sm"
                     )}
                   >
                     <div className={cn("text-3xl mb-1.5 transition-transform group-hover:scale-110", !player.connected && "opacity-50 grayscale")}>
@@ -151,12 +151,12 @@ export function LobbyScreen({
                     </div>
                     
                     <div className="w-full text-center">
-                      <span className="font-bold text-slate-800 text-sm truncate block w-full">
+                      <span className="font-bold text-slate-50 text-sm truncate block w-full">
                         {player.name}
                       </span>
                       <span className={cn(
                         "text-[10px] font-black uppercase tracking-wider mt-0.5 block",
-                        player.isReady ? "text-emerald-600" : "text-slate-400"
+                        player.isReady ? "text-emerald-500" : "text-slate-500"
                       )}>
                         {player.isReady ? "Ready" : "Waiting"}
                       </span>

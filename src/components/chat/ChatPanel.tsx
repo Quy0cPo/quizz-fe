@@ -51,14 +51,14 @@ export function ChatPanel({ socket, roomCode, playerId }: { socket: Socket | nul
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="md:hidden fixed inset-0 bg-slate-900/20 backdrop-blur-sm z-40" 
+            className="md:hidden fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-40" 
             onClick={() => setIsExpanded(false)} 
           />
         )}
       </AnimatePresence>
       
       <div className={cn(
-        "flex flex-col bg-white border border-slate-200/60 shadow-xl transition-all duration-300 z-50",
+        "flex flex-col bg-slate-900 border border-slate-800 shadow-xl transition-all duration-300 z-50",
         "fixed md:relative bottom-0 right-0 left-0 md:bottom-auto md:right-auto md:left-auto",
         "md:w-full md:h-full md:rounded-3xl md:overflow-hidden",
         isExpanded ? "h-[70vh] rounded-t-3xl" : "h-[52px]"
@@ -69,22 +69,22 @@ export function ChatPanel({ socket, roomCode, playerId }: { socket: Socket | nul
             setUnreadCount(0);
           }} 
           className={cn(
-            "flex items-center justify-between px-4 py-2.5 border-b border-slate-100 bg-white/80 backdrop-blur-md transition-colors w-full text-left",
-            !isExpanded && "hover:bg-slate-50",
+            "flex items-center justify-between px-4 py-2.5 border-b border-slate-800 bg-slate-900/80 backdrop-blur-md transition-colors w-full text-left",
+            !isExpanded && "hover:bg-slate-800",
             "md:cursor-default md:hover:bg-transparent"
           )}
         >
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 relative shrink-0">
+            <div className="w-9 h-9 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-400 relative shrink-0">
               <MessageCircle className="w-5 h-5" />
-              <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full"></span>
+              <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-slate-900 rounded-full"></span>
             </div>
             <div className="flex flex-col overflow-hidden">
-              <h3 className="font-semibold text-slate-800 text-sm flex items-center gap-2">
+              <h3 className="font-semibold text-slate-50 text-sm flex items-center gap-2">
                 Room Chat
               </h3>
               {!isExpanded && (
-                <span className="text-xs font-medium text-slate-500 truncate max-w-[180px] md:max-w-[200px]">
+                <span className="text-xs font-medium text-slate-400 truncate max-w-[180px] md:max-w-[200px]">
                   {lastMessagePreview}
                 </span>
               )}
@@ -93,24 +93,24 @@ export function ChatPanel({ socket, roomCode, playerId }: { socket: Socket | nul
 
           <div className="flex items-center gap-3">
             {unreadCount > 0 && !isExpanded && (
-              <div className="flex items-center gap-1 bg-red-100 text-red-600 px-2 py-1 rounded-lg font-bold text-xs animate-bounce">
+              <div className="flex items-center gap-1 bg-rose-500/10 text-rose-500 px-2 py-1 rounded-lg font-bold text-xs animate-bounce">
                 <Bell className="w-3 h-3" />
                 {unreadCount > 9 ? "9+" : unreadCount}
               </div>
             )}
-            <div className="md:hidden w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500">
+            <div className="md:hidden w-8 h-8 flex items-center justify-center rounded-full bg-slate-800 text-slate-400">
               {isExpanded ? <ChevronDown className="w-5 h-5" /> : <ChevronUp className="w-5 h-5" />}
             </div>
           </div>
         </button>
         
         <div className={cn(
-          "flex-1 flex flex-col min-h-0 bg-slate-50/50",
+          "flex-1 flex flex-col min-h-0 bg-slate-900/50",
           !isExpanded && "hidden md:flex"
         )}>
           <ReactionBar onSendReaction={handleSendReaction} />
           <MessageList messages={messages} currentPlayerId={playerId} />
-          <div className="p-3 bg-white border-t border-slate-100">
+          <div className="p-3 bg-slate-900 border-t border-slate-800">
             <MessageInput onSendMessage={handleSendMessage} />
           </div>
         </div>

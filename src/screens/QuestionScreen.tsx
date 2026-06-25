@@ -37,11 +37,11 @@ export function QuestionScreen({
         barRef.current.style.transform = `scaleX(${progress / 100})`;
         
         if (newTimeLeft <= 5 && newTimeLeft > 0) {
-          barRef.current.classList.add("bg-red-500", "shadow-[0_0_15px_rgba(239,68,68,0.6)]");
+          barRef.current.classList.add("bg-rose-500", "shadow-[0_0_15px_rgba(244,63,94,0.6)]");
           barRef.current.classList.remove("bg-emerald-500");
         } else {
           barRef.current.classList.add("bg-emerald-500");
-          barRef.current.classList.remove("bg-red-500", "shadow-[0_0_15px_rgba(239,68,68,0.6)]");
+          barRef.current.classList.remove("bg-rose-500", "shadow-[0_0_15px_rgba(244,63,94,0.6)]");
         }
       }
 
@@ -68,25 +68,25 @@ export function QuestionScreen({
       {/* Top Section (Timer & Info) */}
       <div className="flex flex-col gap-4 shrink-0">
         {payload.quizTitle && (
-          <div className="self-start bg-emerald-50 text-emerald-800 font-bold px-3 py-1.5 text-[10px] md:text-xs uppercase tracking-wider border border-emerald-100 rounded-lg">
+          <div className="self-start bg-emerald-500/10 text-emerald-400 font-bold px-3 py-1.5 text-[10px] md:text-xs uppercase tracking-wider border border-emerald-500/20 rounded-lg">
             {payload.quizTitle}
           </div>
         )}
 
-        <div className="flex items-center justify-between font-bold text-slate-700">
+        <div className="flex items-center justify-between font-bold text-slate-300">
           <span className="text-sm md:text-base">
             Question {payload.questionNumber} of {payload.totalQuestions}
           </span>
           <div className={cn(
             "flex items-center",
-            isUrgent ? "text-red-600 animate-pulse font-black" : ""
+            isUrgent ? "text-rose-500 animate-pulse font-black" : ""
           )}>
             <strong ref={textRef} className="text-xl md:text-2xl">{payload.durationSeconds}s</strong>
           </div>
         </div>
 
         {/* Smooth Progress Bar via CSS Transform */}
-        <div className="h-2.5 w-full bg-slate-100 rounded-full overflow-hidden shrink-0">
+        <div className="h-2.5 w-full bg-slate-800 rounded-full overflow-hidden shrink-0">
           <div 
             ref={barRef} 
             className="h-full bg-amber-500 origin-left" 
@@ -102,18 +102,18 @@ export function QuestionScreen({
         <div className="flex flex-col items-center justify-center w-full">
         {payload.question.type === "mcq" ? (
           <h2 className={cn(
-            "font-black text-slate-800 text-center leading-tight transition-all px-2",
+            "font-black text-slate-50 text-center leading-tight transition-all px-2",
             isLongQuestion ? "text-xl md:text-3xl lg:text-4xl" : "text-2xl md:text-4xl lg:text-5xl"
           )}>
             {payload.question.question}
           </h2>
         ) : (
           <div className="flex flex-col items-center text-center space-y-4">
-            <span className="inline-block uppercase tracking-widest text-xs font-bold text-slate-400 bg-slate-100 px-3 py-1.5 rounded-lg">
+            <span className="inline-block uppercase tracking-widest text-xs font-bold text-slate-400 bg-slate-800 px-3 py-1.5 rounded-lg">
               Unscramble the letters
             </span>
             <h2 className={cn(
-              "font-black text-indigo-600 tracking-[0.1em] uppercase break-all transition-all",
+              "font-black text-indigo-400 tracking-[0.1em] uppercase break-all transition-all",
               isLongQuestion ? "text-2xl md:text-4xl" : "text-3xl md:text-5xl"
             )}>
               {payload.question.question}
@@ -136,17 +136,17 @@ export function QuestionScreen({
                   className={cn(
                     "group flex items-center p-2.5 sm:p-3 rounded-xl border-2 text-left transition-all min-h-[52px]",
                     submitted 
-                      ? "opacity-50 border-slate-200 bg-slate-50 cursor-not-allowed" 
-                      : "border-slate-200 bg-white hover:border-emerald-500 hover:bg-emerald-50 active:scale-[0.98] cursor-pointer shadow-sm"
+                      ? "opacity-50 border-slate-800 bg-slate-900 cursor-not-allowed" 
+                      : "border-slate-800 bg-slate-950 hover:border-emerald-500/50 hover:bg-emerald-500/10 active:scale-[0.98] cursor-pointer shadow-sm"
                   )}
                 >
                   <div className={cn(
-                    "flex items-center justify-center w-7 h-7 rounded-lg bg-slate-100 text-slate-500 font-bold text-sm mr-3 shrink-0 transition-colors",
+                    "flex items-center justify-center w-7 h-7 rounded-lg bg-slate-800 text-slate-400 font-bold text-sm mr-3 shrink-0 transition-colors",
                     !submitted && "group-hover:bg-emerald-500 group-hover:text-white"
                   )}>
                     {letters[index]}
                   </div>
-                  <span className="text-sm sm:text-base font-bold text-slate-800 leading-snug line-clamp-3">
+                  <span className="text-sm sm:text-base font-bold text-slate-50 leading-snug line-clamp-3">
                     {option}
                   </span>
                 </button>
@@ -166,14 +166,14 @@ export function QuestionScreen({
               disabled={submitted} 
               onChange={(event) => onAnswerChange(event.target.value)} 
               placeholder="Type your answer..." 
-              className="text-lg md:text-xl font-bold h-14 uppercase tracking-wider text-center border-2 border-slate-200 shadow-sm rounded-2xl"
+              className="text-lg md:text-xl font-bold h-14 uppercase tracking-wider text-center border-2 border-slate-800 bg-slate-950 text-slate-50 shadow-sm rounded-2xl"
               autoFocus
             />
             <Button 
               type="submit" 
               disabled={submitted} 
               size="lg" 
-              className="h-12 text-lg bg-indigo-600 hover:bg-indigo-700 shadow-xl shadow-indigo-600/20"
+              className="h-12 text-lg bg-indigo-600 hover:bg-indigo-700 shadow-xl shadow-indigo-900/20"
             >
               {submitted ? "Sent" : "Submit"}
             </Button>
@@ -188,9 +188,9 @@ export function QuestionScreen({
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
-                  className="bg-slate-50 border border-slate-200 text-slate-600 font-bold px-4 py-2 rounded-xl text-center flex items-center justify-center gap-3 text-xs md:text-sm shadow-sm"
+                  className="bg-slate-900 border border-slate-800 text-slate-400 font-bold px-4 py-2 rounded-xl text-center flex items-center justify-center gap-3 text-xs md:text-sm shadow-sm"
                 >
-                  <div className="w-4 h-4 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" />
+                  <div className="w-4 h-4 border-2 border-slate-500 border-t-transparent rounded-full animate-spin" />
                   Waiting for other players...
                 </motion.div>
               )}

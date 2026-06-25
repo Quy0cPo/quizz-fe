@@ -19,7 +19,7 @@ export function MessageInput({ onSendMessage }: { onSendMessage: (msg: string) =
       <input
         ref={inputRef}
         type="text"
-        className="flex-1 h-10 bg-slate-50 border border-slate-200 rounded-xl px-3 pr-11 text-base sm:text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all"
+        className="flex-1 h-10 bg-slate-950 border border-slate-800 rounded-xl px-3 pr-11 text-base sm:text-sm text-slate-50 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all"
         placeholder="Type a message..."
         value={inputValue}
         onChange={(e) => setInputValue(e.target.value)}

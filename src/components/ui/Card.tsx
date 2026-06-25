@@ -7,7 +7,7 @@ const Card = React.forwardRef<HTMLDivElement, HTMLMotionProps<"div">>(
     <motion.div
       ref={ref}
       className={cn(
-        "rounded-[24px] border border-white/60 bg-white/80 backdrop-blur-xl text-slate-800 shadow-xl overflow-hidden",
+        "rounded-[24px] border border-slate-800 bg-slate-900/90 backdrop-blur-xl text-slate-50 shadow-xl overflow-hidden",
         className
       )}
       {...props}
