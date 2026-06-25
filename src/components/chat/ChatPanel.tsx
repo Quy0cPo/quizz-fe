@@ -7,19 +7,26 @@ import { ReactionBar } from "./ReactionBar";
 export function ChatPanel({ socket, roomCode, playerId }: { socket: Socket | null; roomCode: string; playerId: string }) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [hasUnread, setHasUnread] = useState(false);
 
   useEffect(() => {
     if (!socket) return;
 
     const handleMessage = (msg: ChatMessage) => {
-      setMessages((prev) => [...prev, msg]);
+      setMessages((prev) => {
+        // If message is not from self and chat is not expanded, mark unread
+        if (msg.playerId !== playerId) {
+          setHasUnread(true);
+        }
+        return [...prev, msg];
+      });
     };
 
     socket.on("chat-message", handleMessage);
     return () => {
       socket.off("chat-message", handleMessage);
     };
-  }, [socket]);
+  }, [socket, playerId]);
 
   const handleSendMessage = (message: string) => {
     if (!socket) return;
@@ -42,9 +49,15 @@ export function ChatPanel({ socket, roomCode, playerId }: { socket: Socket | nul
       {isExpanded && <div className="chat-backdrop" onClick={() => setIsExpanded(false)} />}
       
       <div className={`chat-panel ${isExpanded ? "expanded" : "collapsed"}`}>
-        <div className="chat-panel-header" onClick={() => setIsExpanded(!isExpanded)} style={{ cursor: 'pointer' }}>
+        <div className="chat-panel-header" onClick={() => {
+          setIsExpanded(!isExpanded);
+          if (!isExpanded) setHasUnread(false);
+        }} style={{ cursor: 'pointer' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <h3>Lobby Chat</h3>
+            <h3 style={{ display: 'flex', alignItems: 'center' }}>
+              Lobby Chat
+              {hasUnread && !isExpanded && <span className="unread-dot"></span>}
+            </h3>
             <span className="online-count">🟢 Online</span>
           </div>
           {!isExpanded && (
