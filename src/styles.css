@@ -270,6 +270,8 @@ button:focus-visible {
   padding-top: 12px;
   border-top: 1px solid #edf2f7;
   margin-top: auto;
+  display: flex;
+  justify-content: center;
 }
 
 .player-list {
