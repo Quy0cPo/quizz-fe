@@ -7,26 +7,24 @@ import { ReactionBar } from "./ReactionBar";
 export function ChatPanel({ socket, roomCode, playerId }: { socket: Socket | null; roomCode: string; playerId: string }) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isExpanded, setIsExpanded] = useState(false);
-  const [hasUnread, setHasUnread] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     if (!socket) return;
 
     const handleMessage = (msg: ChatMessage) => {
-      setMessages((prev) => {
-        // If message is not from self and chat is not expanded, mark unread
-        if (msg.playerId !== playerId) {
-          setHasUnread(true);
-        }
-        return [...prev, msg];
-      });
+      // If message is not from self and chat is not expanded, increment unread count
+      if (msg.playerId !== playerId && !isExpanded) {
+        setUnreadCount((count) => count + 1);
+      }
+      setMessages((prev) => [...prev, msg]);
     };
 
     socket.on("chat-message", handleMessage);
     return () => {
       socket.off("chat-message", handleMessage);
     };
-  }, [socket, playerId]);
+  }, [socket, playerId, isExpanded]);
 
   const handleSendMessage = (message: string) => {
     if (!socket) return;
@@ -51,12 +49,11 @@ export function ChatPanel({ socket, roomCode, playerId }: { socket: Socket | nul
       <div className={`chat-panel ${isExpanded ? "expanded" : "collapsed"}`}>
         <div className="chat-panel-header" onClick={() => {
           setIsExpanded(!isExpanded);
-          if (!isExpanded) setHasUnread(false);
+          setUnreadCount(0);
         }} style={{ cursor: 'pointer' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <h3 style={{ display: 'flex', alignItems: 'center' }}>
               Lobby Chat
-              {hasUnread && !isExpanded && <span className="unread-dot"></span>}
             </h3>
             <span className="online-count">🟢 Online</span>
           </div>
@@ -67,9 +64,16 @@ export function ChatPanel({ socket, roomCode, playerId }: { socket: Socket | nul
               </span>
             </div>
           )}
-          <button className="chat-toggle-btn" aria-label="Toggle Chat">
-            {isExpanded ? "▼" : "▲"}
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {unreadCount > 0 && !isExpanded && (
+              <span className="unread-badge">
+                {unreadCount > 9 ? "9+" : unreadCount}
+              </span>
+            )}
+            <button className="chat-toggle-btn" aria-label="Toggle Chat">
+              {isExpanded ? "▼" : "▲"}
+            </button>
+          </div>
         </div>
         
         <div className="chat-panel-content">
