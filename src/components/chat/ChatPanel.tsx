@@ -6,6 +6,7 @@ import { ReactionBar } from "./ReactionBar";
 
 export function ChatPanel({ socket, roomCode, playerId }: { socket: Socket | null; roomCode: string; playerId: string }) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   useEffect(() => {
     if (!socket) return;
@@ -30,18 +31,39 @@ export function ChatPanel({ socket, roomCode, playerId }: { socket: Socket | nul
     socket.emit("send-emote", { roomCode, emote });
   };
 
+  const lastMessage = messages.length > 0 ? messages[messages.length - 1].message : "No messages yet. Say hi!";
+
   return (
-    <div className="chat-panel">
-      <div className="chat-panel-header">
-        <h3>Lobby Chat</h3>
-        <span className="online-count">🟢 Online</span>
+    <>
+      {/* Backdrop for mobile */}
+      {isExpanded && <div className="chat-backdrop" onClick={() => setIsExpanded(false)} />}
+      
+      <div className={`chat-panel ${isExpanded ? "expanded" : "collapsed"}`}>
+        <div className="chat-panel-header" onClick={() => setIsExpanded(!isExpanded)} style={{ cursor: 'pointer' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <h3>Lobby Chat</h3>
+            <span className="online-count">🟢 Online</span>
+          </div>
+          {!isExpanded && (
+            <div className="chat-preview">
+              <span className="muted" style={{ fontSize: '0.8rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '150px' }}>
+                {lastMessage}
+              </span>
+            </div>
+          )}
+          <button className="chat-toggle-btn" aria-label="Toggle Chat">
+            {isExpanded ? "▼" : "▲"}
+          </button>
+        </div>
+        
+        {isExpanded && (
+          <div className="chat-panel-content">
+            <ReactionBar onSendReaction={handleSendReaction} />
+            <MessageList messages={messages} currentPlayerId={playerId} />
+            <MessageInput onSendMessage={handleSendMessage} />
+          </div>
+        )}
       </div>
-      
-      <ReactionBar onSendReaction={handleSendReaction} />
-      
-      <MessageList messages={messages} currentPlayerId={playerId} />
-      
-      <MessageInput onSendMessage={handleSendMessage} />
-    </div>
+    </>
   );
 }

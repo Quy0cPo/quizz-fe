@@ -13,10 +13,13 @@
   box-sizing: border-box;
 }
 
-body {
+html, body {
   margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
   min-width: 320px;
-  min-height: 100vh;
 }
 
 button,
@@ -38,8 +41,20 @@ button:disabled {
 .app-shell {
   align-items: center;
   display: flex;
-  min-height: 100vh;
-  padding: 16px;
+  height: 100dvh;
+  padding: 12px;
+  width: 100%;
+  overflow: hidden;
+}
+
+.layout-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  gap: 12px;
 }
 
 .game-frame {
@@ -47,10 +62,13 @@ button:disabled {
   border: 1px solid #dde4f0;
   border-radius: 8px;
   box-shadow: 0 20px 60px rgba(46, 62, 95, 0.14);
-  margin: 0 auto;
-  max-width: 900px;
-  padding: 20px;
+  padding: 16px;
   width: 100%;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
 }
 
 input[type="checkbox"] {
@@ -62,18 +80,18 @@ input[type="checkbox"] {
   align-items: center;
   border-bottom: 1px solid #e8edf5;
   display: flex;
-  gap: 16px;
+  gap: 12px;
   justify-content: space-between;
-  margin-bottom: 20px;
-  padding-bottom: 16px;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
 }
 
 .eyebrow {
   color: #2e7d68;
-  font-size: 0.78rem;
+  font-size: 0.65rem;
   font-weight: 800;
   letter-spacing: 0;
-  margin: 0 0 4px;
+  margin: 0 0 2px;
   text-transform: uppercase;
 }
 
@@ -84,8 +102,8 @@ p {
 }
 
 h1 {
-  font-size: clamp(1.65rem, 5vw, 2.8rem);
-  line-height: 1.05;
+  font-size: clamp(1.2rem, 5vw, 1.8rem);
+  line-height: 1.1;
   margin-bottom: 0;
 }
 
@@ -236,24 +254,42 @@ button:focus-visible {
   font-size: 2rem;
 }
 
+.player-list-container {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+  border-radius: 8px;
+  border: 1px solid #e0e7f1;
+  background: #f7f9fc;
+}
+
+.sticky-bottom-action {
+  position: sticky;
+  bottom: 0;
+  background: #ffffff;
+  padding-top: 12px;
+  border-top: 1px solid #edf2f7;
+  margin-top: auto;
+}
+
 .player-list {
   display: grid;
-  gap: 10px;
+  gap: 8px;
   list-style: none;
   margin: 0;
-  padding: 0;
+  padding: 8px;
 }
 
 .player-list li {
   align-items: center;
-  background: #f7f9fc;
+  background: #ffffff;
   border: 1px solid #e0e7f1;
   border-radius: 8px;
   display: grid;
-  gap: 10px;
-  grid-template-columns: 36px 1fr auto;
-  min-height: 52px;
-  padding: 10px 12px;
+  gap: 8px;
+  grid-template-columns: 32px 1fr auto;
+  min-height: 48px;
+  padding: 8px 10px;
 }
 
 .rank {
@@ -505,30 +541,63 @@ button:focus-visible {
   }
 
   .layout-container.with-chat .game-frame {
-    flex: 7;
+    flex: 1;
     margin: 0;
     max-width: none;
   }
 
   .layout-container.with-chat .chat-panel {
-    flex: 3;
-    min-width: 300px;
-    max-width: 400px;
-    height: 100%;
+    /* override any side-panel stuff since we use bottom sheet globally now */
   }
 }
 
 /* Chat Panel Component */
+.chat-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 40;
+}
+
 .chat-panel {
   background: white;
-  border-radius: 12px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+  border-radius: 16px 16px 0 0;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  transition: transform 0.3s ease-out, height 0.3s ease-out;
+  margin: 0 auto;
+  max-width: 900px; /* match layout-container */
+}
+
+.chat-panel.collapsed {
+  height: auto;
+  cursor: pointer;
+}
+
+.chat-panel.expanded {
+  height: 65dvh;
+}
+
+.chat-panel-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
   overflow: hidden;
-  border: 1px solid #edf2f7;
-  max-height: calc(100vh - 100px);
-  position: relative;
+}
+
+.chat-toggle-btn {
+  background: none;
+  border: none;
+  color: #64748b;
+  font-size: 0.8rem;
+  padding: 8px;
 }
 
 .chat-panel-header {

@@ -357,7 +357,7 @@ function App() {
           </div>
           {roomCode ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              <span className="room-pill">{roomCode}</span>
+              {screen !== "lobby" && <span className="room-pill">{roomCode}</span>}
               {isHost && screen !== "lobby" && screen !== "final" && (
                 <button 
                   className="ghost-button" 

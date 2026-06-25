@@ -28,54 +28,64 @@ export function LobbyScreen({
   const allReady = players.every(p => p.isReady);
 
   return (
-    <div className="screen-stack">
-      <div className="room-code">
-        <span>Room</span>
-        <strong>{roomCode}</strong>
-      </div>
-      <button className="ghost-button" type="button" onClick={onCopyRoomCode}>
-        {copiedRoomCode ? "Copied!" : "Copy Room Code"}
-      </button>
-
-      {!isHost && me && (
+    <div className="screen-stack" style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, paddingBottom: '80px', gap: '16px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '4px' }}>
+        <div className="room-code" style={{ padding: '8px 24px', margin: 0, flex: 1, justifyContent: 'center', gap: '12px' }}>
+          <span style={{ fontSize: '0.9rem' }}>Room</span>
+          <strong style={{ fontSize: '2.2rem' }}>{roomCode}</strong>
+        </div>
         <button 
-          className={me.isReady ? "primary-button" : "secondary-button"} 
-          onClick={() => socket?.emit("toggle-ready", { roomCode })}
+          className="ghost-button" 
+          type="button" 
+          onClick={onCopyRoomCode}
+          style={{ width: 'auto', padding: '0 16px', height: '100%', minHeight: '60px' }}
+          title="Copy Room Code"
         >
-          {me.isReady ? "I'm Ready!" : "Click to Ready up"}
+          {copiedRoomCode ? "✅" : "📋"}
         </button>
-      )}
+      </div>
 
-      <PlayerList 
-        players={players} 
-        renderExtra={(player) => (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginLeft: 'auto' }}>
-            {!player.isHost && (
-              <span className={player.isReady ? "ready-badge" : "not-ready-badge"}>
-                {player.isReady ? "Ready" : "Not Ready"}
-              </span>
-            )}
-            {isHost && !player.isHost && (
-              <button 
-                className="kick-button" 
-                onClick={() => socket?.emit("kick-player", { roomCode, targetId: player.id })}
-                title="Kick Player"
-              >
-                ✕
-              </button>
-            )}
-          </div>
+      <div className="player-list-container">
+        <PlayerList 
+          players={players} 
+          renderExtra={(player) => (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginLeft: 'auto' }}>
+              {!player.isHost && (
+                <span className={player.isReady ? "ready-badge" : "not-ready-badge"}>
+                  {player.isReady ? "Ready" : "Not Ready"}
+                </span>
+              )}
+              {isHost && !player.isHost && (
+                <button 
+                  className="kick-button" 
+                  onClick={() => socket?.emit("kick-player", { roomCode, targetId: player.id })}
+                  title="Kick Player"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+          )}
+        />
+      </div>
+
+      <div className="sticky-bottom-action">
+        {!isHost && me && (
+          <button 
+            className={me.isReady ? "primary-button" : "secondary-button"} 
+            onClick={() => socket?.emit("toggle-ready", { roomCode })}
+          >
+            {me.isReady ? "I'm Ready!" : "Click to Ready up"}
+          </button>
         )}
-      />
-
-      {isHost ? (
-        <button className="primary-button" disabled={isStarting || !allReady} onClick={onStart}>
-          {isStarting ? "Starting..." : (!allReady ? "Waiting for players to ready..." : "Start Game")}
-        </button>
-      ) : (
-        <p className="muted">Waiting for host...</p>
-      )}
-
+        {isHost ? (
+          <button className="primary-button" disabled={isStarting || !allReady} onClick={onStart}>
+            {isStarting ? "Starting..." : (!allReady ? "Waiting for players to ready..." : "Start Game")}
+          </button>
+        ) : (
+          !me && <p className="muted" style={{ textAlign: "center", margin: 0 }}>Waiting for host...</p>
+        )}
+      </div>
     </div>
   );
 }
