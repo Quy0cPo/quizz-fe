@@ -1,9 +1,9 @@
 import { motion } from "framer-motion";
-import { Wand2, Gamepad2, Sparkles } from "lucide-react";
+import { Wand2, Gamepad2, Sparkles, Trophy } from "lucide-react";
 import { Button } from "../components/ui/Button";
 import { ScreenFrame } from "../components/ui/ScreenFrame";
 
-export function HomeScreen({ onNavigateGenerate, onNavigateRooms }: { onNavigateGenerate: () => void; onNavigateRooms: () => void }) {
+export function HomeScreen({ onNavigateGenerate, onNavigateRooms, onNavigateGlobalLeaderboard }: { onNavigateGenerate: () => void; onNavigateRooms: () => void; onNavigateGlobalLeaderboard: () => void; }) {
   return (
     <ScreenFrame variant="centered" maxWidth="lg">
       <motion.div 
@@ -32,6 +32,12 @@ export function HomeScreen({ onNavigateGenerate, onNavigateRooms }: { onNavigate
           <Button variant="outline" size="lg" onClick={onNavigateGenerate} className="w-full text-base h-12 bg-slate-900 hover:bg-slate-800 text-slate-300 border-2 border-slate-800 group">
             <Wand2 className="w-5 h-5 mr-2 text-cyan-500 group-hover:rotate-12 transition-transform" />
             Generate Quiz with AI
+          </Button>
+
+          {/* Leaderboard Action */}
+          <Button variant="outline" size="lg" onClick={onNavigateGlobalLeaderboard} className="w-full text-base h-12 bg-slate-900 hover:bg-slate-800 text-slate-300 border-2 border-slate-800 group">
+            <Trophy className="w-5 h-5 mr-2 text-amber-500 group-hover:scale-110 transition-transform" />
+            Global Leaderboard
           </Button>
         </div>
       </motion.div>

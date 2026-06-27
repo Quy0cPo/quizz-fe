@@ -43,11 +43,18 @@ export function PlayerList({ players, showScores = false, lastResult, renderExtr
                     {player.isHost && <Crown className="w-4 h-4 text-amber-500 fill-amber-500" />}
                   </span>
                   
-                  {(player.streak ?? 0) > 1 && (
-                    <span className="inline-flex items-center gap-1 text-xs font-bold text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded-md w-fit">
-                      <Flame className="w-3 h-3 fill-orange-500" /> {player.streak} Streak
-                    </span>
-                  )}
+                  <div className="flex items-center gap-2 mt-0.5">
+                    {(player.streak ?? 0) >= 3 && (
+                      <span className="inline-flex items-center gap-1 text-xs font-bold text-orange-500 bg-orange-500/10 px-2 py-0.5 rounded-md border border-orange-500/20 shadow-sm shadow-orange-500/10">
+                        <Flame className="w-3 h-3 animate-pulse fill-orange-500" /> {player.streak} Streak!
+                      </span>
+                    )}
+                    {(!isCorrect && (submission?.previousStreak ?? 0) >= 3) && (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold text-slate-500 bg-slate-800/80 px-2 py-0.5 rounded-md border border-slate-700 grayscale">
+                        <Flame className="w-3 h-3" /> <span className="line-through decoration-2">Streak Lost</span>
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>

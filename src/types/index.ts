@@ -1,4 +1,4 @@
-export type Screen = "home" | "generate" | "rooms" | "lobby" | "countdown" | "question" | "result" | "leaderboard" | "final";
+export type Screen = "home" | "generate" | "rooms" | "lobby" | "countdown" | "question" | "result" | "leaderboard" | "global-leaderboard" | "final" | "admin-login" | "admin-dashboard" | "admin";
 
 export type PublicQuestion =
   | {
@@ -41,6 +41,7 @@ export type AnswerResultPayload = {
     correct: boolean;
     points: number;
     streak?: number;
+    previousStreak?: number;
     submittedAt: number;
   }[];
   leaderboard: Player[];

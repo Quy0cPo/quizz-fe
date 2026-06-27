@@ -1,6 +1,6 @@
 import { AnswerResultPayload } from "../types";
 import { motion } from "framer-motion";
-import { CheckCircle2, XCircle } from "lucide-react";
+import { CheckCircle2, XCircle, Flame } from "lucide-react";
 import { cn } from "../lib/utils";
 
 export function ResultScreen({ submission, correctAnswer, rank }: { submission?: AnswerResultPayload["submissions"][number]; correctAnswer: string; rank: number }) {
@@ -40,6 +40,35 @@ export function ResultScreen({ submission, correctAnswer, rank }: { submission?:
             {isCorrect ? `+${submission?.points ?? 0} points` : `Answer: ${correctAnswer}`}
           </p>
         </div>
+
+        {/* Streak Animation */}
+        {isCorrect && submission?.streak && submission.streak >= 3 && (
+          <motion.div
+            initial={{ scale: 0, opacity: 0, y: 20 }}
+            animate={{ scale: [0, 1.2, 1], opacity: 1, y: 0 }}
+            transition={{ type: "spring", stiffness: 400, damping: 10, delay: 0.2 }}
+            className="flex items-center gap-2 text-orange-500 bg-orange-500/10 px-5 py-2.5 rounded-full border border-orange-500/20 shadow-lg shadow-orange-500/10 mt-2"
+          >
+            <Flame className="w-6 h-6 animate-pulse" />
+            <span className="font-black text-lg">{submission.streak} Streak!</span>
+          </motion.div>
+        )}
+
+        {!isCorrect && submission?.previousStreak && submission.previousStreak >= 3 && (
+          <motion.div
+            initial={{ scale: 1, opacity: 1 }}
+            animate={{ 
+              scale: [1, 1.1, 0.9, 1], 
+              opacity: [1, 0.8, 0.5, 0.5],
+              rotate: [0, -10, 10, 0]
+            }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="flex items-center gap-2 text-slate-500 bg-slate-800/80 px-5 py-2.5 rounded-full border border-slate-700 shadow-inner mt-2 grayscale"
+          >
+            <Flame className="w-6 h-6" />
+            <span className="font-bold text-lg line-through decoration-2">Streak Lost</span>
+          </motion.div>
+        )}
       </div>
 
       <motion.div 

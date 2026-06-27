@@ -8,10 +8,14 @@ import { LobbyScreen } from "./screens/LobbyScreen";
 import { QuestionScreen } from "./screens/QuestionScreen";
 import { ResultScreen } from "./screens/ResultScreen";
 import { LeaderboardScreen } from "./screens/LeaderboardScreen";
+import { GlobalLeaderboardScreen } from "./screens/GlobalLeaderboardScreen";
+import { AdminLoginScreen } from "./screens/AdminLoginScreen";
+import { AdminDashboardScreen } from "./screens/AdminDashboardScreen";
 import { FinalScreen } from "./screens/FinalScreen";
 import { CountdownScreen } from "./screens/CountdownScreen";
 import { ChatPanel } from "./components/chat/ChatPanel";
 import { EmoteOverlay } from "./components/EmoteOverlay";
+import { AnimatePresence, motion } from "framer-motion";
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL ?? "http://localhost:4001";
 
@@ -22,9 +26,11 @@ function generateSessionId() {
 function App() {
   const [socket, setSocket] = useState<Socket | null>(null);
   
+  const [adminToken, setAdminToken] = useState<string>(() => localStorage.getItem("adminToken") || "");
+
   const getInitialScreen = (): Screen => {
     const hash = window.location.hash.replace("#", "") as Screen;
-    const validScreens: Screen[] = ["home", "generate", "rooms", "lobby", "countdown", "question", "result", "leaderboard", "final"];
+    const validScreens: Screen[] = ["home", "generate", "rooms", "lobby", "countdown", "question", "result", "leaderboard", "global-leaderboard", "final", "admin-login", "admin-dashboard", "admin"];
     return validScreens.includes(hash) ? hash : "home";
   };
   const [screenState, setScreenState] = useState<Screen>(getInitialScreen);
@@ -38,7 +44,7 @@ function App() {
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash.replace("#", "") as Screen;
-      const validScreens: Screen[] = ["home", "generate", "rooms", "lobby", "countdown", "question", "result", "leaderboard", "final"];
+      const validScreens: Screen[] = ["home", "generate", "rooms", "lobby", "countdown", "question", "result", "leaderboard", "global-leaderboard", "final", "admin-login", "admin-dashboard", "admin"];
       if (validScreens.includes(hash)) {
         setScreenState(hash);
       }
@@ -75,6 +81,13 @@ function App() {
   const [leaderboard, setLeaderboard] = useState<Player[]>([]);
   const [nextQuestionInSeconds, setNextQuestionInSeconds] = useState(0);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => setError(""), 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
   const [pendingAction, setPendingAction] = useState<"creating" | "joining" | "starting" | null>(null);
   const [isGeneratingQuiz, setIsGeneratingQuiz] = useState(false);
   const [quizSettings, setQuizSettings] = useState<QuizSettings>({
@@ -137,7 +150,7 @@ function App() {
     });
 
     nextSocket.on("connect_error", () => {
-      setError("Cannot connect to the backend. Is it running on port 4001?");
+      setError("Unable to connect to the server. Please check your internet connection or try again later.");
     });
 
     nextSocket.on("app-error", ({ message }: { message: string }) => {
@@ -230,11 +243,12 @@ function App() {
       setScreen("final");
     });
 
-    nextSocket.on("room-reset", () => {
+    nextSocket.on("room-reset", ({ quizTitle }: { quizTitle?: string }) => {
       setQuestion(null);
       setAnswer("");
       setSubmitted(false);
       setLastResult(null);
+      if (quizTitle) setQuizTitle(quizTitle);
       setScreen("lobby");
     });
 
@@ -396,13 +410,18 @@ function App() {
         
         {/* Dynamic Screen Content (Container for ScreenFrame) */}
         <div className="flex-1 flex flex-col overflow-hidden relative min-h-0 w-full">
-          {error && (
-            <div className="absolute top-3 left-1/2 -translate-x-1/2 w-full max-w-lg px-4 z-50">
-              <div className="p-3 bg-rose-500/10 border border-rose-500/30 text-rose-500 rounded-xl text-sm font-medium shadow-lg">
+          <AnimatePresence>
+            {error && (
+              <motion.div 
+                initial={{ opacity: 0, y: -20, height: 0 }}
+                animate={{ opacity: 1, y: 0, height: "auto" }}
+                exit={{ opacity: 0, y: -20, height: 0 }}
+                className="w-full px-4 py-2.5 bg-rose-500/10 border-b border-rose-500/20 text-rose-500 text-sm font-medium text-center shadow-sm shrink-0 z-10"
+              >
                 {error}
-              </div>
-            </div>
-          )}
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {screen === "home" ? (
             <HomeScreen
@@ -415,7 +434,49 @@ function App() {
                 loadSavedQuizzes();
                 setScreen("rooms");
               }}
+              onNavigateGlobalLeaderboard={() => {
+                setError("");
+                setScreen("global-leaderboard");
+              }}
             />
+          ) : null}
+
+          {screen === "global-leaderboard" ? (
+            <GlobalLeaderboardScreen onBack={() => setScreen("home")} />
+          ) : null}
+
+          {screen === "admin-login" ? (
+            <AdminLoginScreen
+              onBack={() => setScreen("home")}
+              onLoginSuccess={(token) => {
+                localStorage.setItem("adminToken", token);
+                setAdminToken(token);
+                setScreen("admin-dashboard");
+              }}
+            />
+          ) : null}
+
+          {(screen === "admin-dashboard" || screen === "admin") ? (
+            adminToken ? (
+              <AdminDashboardScreen
+                token={adminToken}
+                onLogout={() => {
+                  localStorage.removeItem("adminToken");
+                  setAdminToken("");
+                  setScreen("admin-login");
+                }}
+                onBack={() => setScreen("home")}
+              />
+            ) : (
+              <AdminLoginScreen
+                onBack={() => setScreen("home")}
+                onLoginSuccess={(token) => {
+                  localStorage.setItem("adminToken", token);
+                  setAdminToken(token);
+                  setScreen("admin-dashboard");
+                }}
+              />
+            )
           ) : null}
 
           {screen === "generate" ? (
