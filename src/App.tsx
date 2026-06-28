@@ -50,6 +50,17 @@ function App() {
       }
     };
     window.addEventListener("hashchange", handleHashChange);
+
+    // Auto-fill room code from URL params
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get("code");
+    if (code) {
+      setJoinCode(code.toUpperCase());
+      if (getInitialScreen() === "home") {
+        setScreen("rooms");
+      }
+    }
+
     return () => window.removeEventListener("hashchange", handleHashChange);
   }, []);
 

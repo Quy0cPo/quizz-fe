@@ -1,7 +1,8 @@
+import { useState } from "react";
 import { Player } from "../types";
 import { Socket } from "socket.io-client";
 import { motion } from "framer-motion";
-import { Copy, Check, Users, Play, UserX, Crown } from "lucide-react";
+import { Copy, Check, Users, Play, UserX, Crown, Link as LinkIcon } from "lucide-react";
 import { Button } from "../components/ui/Button";
 import { ScreenFrame } from "../components/ui/ScreenFrame";
 import { cn } from "../lib/utils";
@@ -30,8 +31,17 @@ export function LobbyScreen({
   socket: Socket | null;
 }) {
 
+  const [copiedLink, setCopiedLink] = useState(false);
   const me = players.find(p => p.id === socket?.id);
   const allReady = players.every(p => p.isReady);
+
+  const handleCopyLink = () => {
+    const link = `${window.location.origin}/?code=${roomCode}`;
+    navigator.clipboard.writeText(link).then(() => {
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2000);
+    });
+  };
 
   return (
     <ScreenFrame variant="form" maxWidth="3xl">
@@ -51,29 +61,43 @@ export function LobbyScreen({
                 {quizTitle}
               </h2>
             )}
-            <p className="text-slate-400 font-medium text-sm">Ask your friends to join using this code:</p>
+            <p className="text-slate-400 font-medium text-sm">Ask your friends to join using this code or link:</p>
           </div>
 
           {/* Right Code Box */}
-          <div className="shrink-0 w-full sm:w-72">
+          <div className="shrink-0 w-full sm:w-80">
             <div className="bg-slate-900 rounded-2xl p-4 border border-slate-800 flex flex-col gap-2 h-full justify-center shadow-xl">
               <span className="text-slate-400 font-bold uppercase tracking-widest text-[10px] ml-1">Room Code</span>
               <div className="flex items-stretch gap-2">
                 <div className="flex-1 flex items-center justify-center text-3xl font-black text-emerald-500 tracking-[0.2em] uppercase bg-slate-950 py-2.5 rounded-xl border-2 border-slate-800 shadow-sm">
                   {roomCode}
                 </div>
-                <Button 
-                  variant="outline" 
-                  className="w-14 shrink-0 px-0 bg-slate-950 border-2 border-slate-800 hover:bg-slate-800 hover:border-slate-700 transition-all shadow-sm group"
-                  onClick={onCopyRoomCode}
-                  title="Copy Code"
-                >
-                  {copiedRoomCode ? (
-                    <Check className="w-5 h-5 text-emerald-500" />
-                  ) : (
-                    <Copy className="w-5 h-5 text-slate-400 group-hover:text-emerald-500 transition-colors" />
-                  )}
-                </Button>
+                <div className="flex flex-col gap-2 shrink-0">
+                  <Button 
+                    variant="outline" 
+                    className="w-12 h-10 px-0 bg-slate-950 border-2 border-slate-800 hover:bg-slate-800 hover:border-slate-700 transition-all shadow-sm group"
+                    onClick={onCopyRoomCode}
+                    title="Copy Code"
+                  >
+                    {copiedRoomCode ? (
+                      <Check className="w-4 h-4 text-emerald-500" />
+                    ) : (
+                      <Copy className="w-4 h-4 text-slate-400 group-hover:text-emerald-500 transition-colors" />
+                    )}
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    className="w-12 h-10 px-0 bg-slate-950 border-2 border-slate-800 hover:bg-slate-800 hover:border-slate-700 transition-all shadow-sm group"
+                    onClick={handleCopyLink}
+                    title="Copy Invite Link"
+                  >
+                    {copiedLink ? (
+                      <Check className="w-4 h-4 text-emerald-500" />
+                    ) : (
+                      <LinkIcon className="w-4 h-4 text-slate-400 group-hover:text-emerald-500 transition-colors" />
+                    )}
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
