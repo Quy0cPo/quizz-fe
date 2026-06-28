@@ -148,6 +148,17 @@ export function GenerateScreen({
             />
           </section>
 
+          {/* AI Images Toggle */}
+          <section className="flex items-center gap-3 bg-slate-900 border border-slate-800 p-3 rounded-2xl cursor-pointer hover:bg-slate-800/50 transition-colors" onClick={() => updateSettings({ includeImages: !settings.includeImages })}>
+            <div className={`w-12 h-6 rounded-full flex items-center p-1 transition-colors ${settings.includeImages ? 'bg-emerald-500' : 'bg-slate-700'}`}>
+              <div className={`w-4 h-4 bg-white rounded-full transition-transform ${settings.includeImages ? 'translate-x-6' : 'translate-x-0'}`} />
+            </div>
+            <div>
+              <div className="text-sm font-bold text-slate-50">Enable Images for All Questions</div>
+              <div className="text-xs text-slate-400 font-medium mt-0.5">Generate highly detailed images via AI for every question.</div>
+            </div>
+          </section>
+
         {generatedQuiz && (
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}

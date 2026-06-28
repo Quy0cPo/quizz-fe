@@ -5,10 +5,12 @@ export type PublicQuestion =
       type: "mcq";
       question: string;
       options: string[];
+      imageUrl?: string;
     }
   | {
       type: "unscramble";
       question: string;
+      imageUrl?: string;
     };
 
 export type Player = {
@@ -53,6 +55,7 @@ export type QuizSettings = {
   questions: number | string;
   types: Array<"mcq" | "unscramble">;
   additionalPrompt: string;
+  includeImages?: boolean;
 };
 
 export type GeneratedQuiz = {

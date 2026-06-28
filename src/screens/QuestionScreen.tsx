@@ -100,6 +100,21 @@ export function QuestionScreen({
         
         {/* Middle Section (Question) */}
         <div className="flex flex-col items-center justify-center w-full">
+          {payload.question.imageUrl && (
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }} 
+              animate={{ opacity: 1, scale: 1 }} 
+              className="w-full max-w-md mb-4 sm:mb-6 rounded-2xl overflow-hidden shadow-lg border-2 border-slate-800 bg-slate-900 shrink-0"
+            >
+              <img 
+                src={payload.question.imageUrl} 
+                alt="AI Generated Visual" 
+                className="w-full h-32 sm:h-40 md:h-56 object-cover"
+                loading="eager"
+              />
+            </motion.div>
+          )}
+
         {payload.question.type === "mcq" ? (
           <h2 className={cn(
             "font-black text-slate-50 text-center leading-tight transition-all px-2",
