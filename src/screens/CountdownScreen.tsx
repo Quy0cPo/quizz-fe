@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-export function CountdownScreen({ initialSeconds }: { initialSeconds: number }) {
+export function CountdownScreen({ initialSeconds, nextImageUrl }: { initialSeconds: number; nextImageUrl?: string | null }) {
   const [seconds, setSeconds] = useState(initialSeconds);
 
   useEffect(() => {
@@ -38,6 +38,11 @@ export function CountdownScreen({ initialSeconds }: { initialSeconds: number }) 
       >
         Get ready!
       </motion.p>
+      
+      {/* Invisible image preloader */}
+      {nextImageUrl && (
+        <img src={nextImageUrl} alt="preload" className="w-0 h-0 opacity-0 absolute pointer-events-none" />
+      )}
     </div>
   );
 }

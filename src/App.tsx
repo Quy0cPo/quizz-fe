@@ -111,6 +111,7 @@ function App() {
   const [generatedQuiz, setGeneratedQuiz] = useState<GeneratedQuiz | null>(null);
   const [savedQuizzes, setSavedQuizzes] = useState<GeneratedQuiz[]>([]);
   const [copiedRoomCode, setCopiedRoomCode] = useState(false);
+  const [nextImageUrl, setNextImageUrl] = useState<string | null>(null);
 
   useEffect(() => {
     const requiresRoom = ["lobby", "countdown", "question", "result", "leaderboard", "final"].includes(screenState);
@@ -205,8 +206,9 @@ function App() {
       setScreen("question");
     });
 
-    nextSocket.on("countdown-start", ({ seconds }: { seconds: number }) => {
+    nextSocket.on("countdown-start", ({ seconds, nextImageUrl: url }: { seconds: number; nextImageUrl?: string }) => {
       setCountdownSeconds(seconds);
+      setNextImageUrl(url || null);
       setError("");
       setScreen("countdown");
     });
@@ -542,7 +544,7 @@ function App() {
           )}
 
           {screen === "countdown" ? (
-            <CountdownScreen initialSeconds={countdownSeconds} />
+            <CountdownScreen initialSeconds={countdownSeconds} nextImageUrl={nextImageUrl} />
           ) : null}
 
           {screen === "question" && question ? (

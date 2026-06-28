@@ -66,12 +66,17 @@ export function QuestionScreen({
     <ScreenFrame variant="game" className="px-3 py-3 sm:px-6 sm:py-4 relative z-10 flex flex-col">
       
       {/* Top Section (Timer & Info) */}
-      <div className="flex flex-col gap-4 shrink-0">
-        {payload.quizTitle && (
-          <div className="self-start bg-emerald-500/10 text-emerald-400 font-bold px-3 py-1.5 text-[10px] md:text-xs uppercase tracking-wider border border-emerald-500/20 rounded-lg">
-            {payload.quizTitle}
+      <div className="flex flex-col gap-3 shrink-0">
+        <div className="flex justify-between items-start">
+          {payload.quizTitle ? (
+            <div className="bg-emerald-500/10 text-emerald-400 font-bold px-3 py-1 text-[10px] md:text-xs uppercase tracking-wider border border-emerald-500/20 rounded-lg line-clamp-1 max-w-[60%] sm:max-w-full">
+              {payload.quizTitle}
+            </div>
+          ) : <div />}
+          <div className="sm:hidden bg-indigo-500/10 text-indigo-400 font-bold px-3 py-1 text-[10px] uppercase tracking-wider border border-indigo-500/20 rounded-lg shrink-0">
+            Room: {payload.roomCode}
           </div>
-        )}
+        </div>
 
         <div className="flex items-center justify-between font-bold text-slate-300">
           <span className="text-sm md:text-base">
@@ -86,7 +91,7 @@ export function QuestionScreen({
         </div>
 
         {/* Smooth Progress Bar via CSS Transform */}
-        <div className="h-2.5 w-full bg-slate-800 rounded-full overflow-hidden shrink-0">
+        <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden shrink-0">
           <div 
             ref={barRef} 
             className="h-full bg-amber-500 origin-left" 
@@ -96,40 +101,41 @@ export function QuestionScreen({
       </div>
 
       {/* Question and Answers Container */}
-      <div className="flex-1 flex flex-col justify-center gap-8 md:gap-12 py-2 sm:py-4 min-h-0">
+      <div className="flex-1 flex flex-col py-2 min-h-0 overflow-y-auto custom-scrollbar">
         
-        {/* Middle Section (Question) */}
-        <div className="flex flex-col items-center justify-center w-full">
-          {payload.question.imageUrl && (
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }} 
-              animate={{ opacity: 1, scale: 1 }} 
-              className="w-full max-w-md mb-4 sm:mb-6 rounded-2xl overflow-hidden shadow-lg border-2 border-slate-800 bg-slate-900 shrink-0"
-            >
-              <img 
-                src={payload.question.imageUrl} 
-                alt="AI Generated Visual" 
-                className="w-full h-32 sm:h-40 md:h-56 object-cover"
-                loading="eager"
-              />
-            </motion.div>
-          )}
+        <div className="flex flex-col gap-4 md:gap-6 w-full my-auto pb-4">
+          {/* Middle Section (Question) */}
+          <div className="flex flex-col items-center justify-center w-full">
+            {payload.question.imageUrl && (
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.95 }} 
+                animate={{ opacity: 1, scale: 1 }} 
+                className="w-full max-w-md mb-3 sm:mb-4 rounded-2xl overflow-hidden shadow-lg border-2 border-slate-800 bg-slate-900 shrink-0"
+              >
+                <img 
+                  src={payload.question.imageUrl} 
+                  alt="AI Generated Visual" 
+                  className="w-full h-28 sm:h-32 md:h-40 object-cover"
+                  loading="eager"
+                />
+              </motion.div>
+            )}
 
         {payload.question.type === "mcq" ? (
           <h2 className={cn(
             "font-black text-slate-50 text-center leading-tight transition-all px-2",
-            isLongQuestion ? "text-xl md:text-3xl lg:text-4xl" : "text-2xl md:text-4xl lg:text-5xl"
+            isLongQuestion ? "text-lg md:text-2xl lg:text-3xl" : "text-xl md:text-3xl lg:text-4xl"
           )}>
             {payload.question.question}
           </h2>
         ) : (
-          <div className="flex flex-col items-center text-center space-y-4">
-            <span className="inline-block uppercase tracking-widest text-xs font-bold text-slate-400 bg-slate-800 px-3 py-1.5 rounded-lg">
+          <div className="flex flex-col items-center text-center space-y-2 md:space-y-3">
+            <span className="inline-block uppercase tracking-widest text-[10px] md:text-xs font-bold text-slate-400 bg-slate-800 px-3 py-1 rounded-lg">
               Unscramble the letters
             </span>
             <h2 className={cn(
               "font-black text-indigo-400 tracking-[0.1em] uppercase break-all transition-all",
-              isLongQuestion ? "text-2xl md:text-4xl" : "text-3xl md:text-5xl"
+              isLongQuestion ? "text-xl md:text-3xl" : "text-2xl md:text-4xl"
             )}>
               {payload.question.question}
             </h2>
@@ -211,6 +217,7 @@ export function QuestionScreen({
               )}
             </AnimatePresence>
           </div>
+        </div>
         </div>
 
       </div>
