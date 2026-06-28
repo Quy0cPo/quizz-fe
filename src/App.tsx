@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState, useCallback } from "react";
 import { io, Socket } from "socket.io-client";
 import { Screen, Player, QuestionPayload, AnswerResultPayload, QuizSettings, GeneratedQuiz } from "./types";
 import { HomeScreen } from "./screens/HomeScreen";
@@ -134,16 +134,28 @@ function App() {
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, [roomCode, screenState]);
 
-  function loadSavedQuizzes() {
-    fetch(`${SERVER_URL}/api/quizzes`)
+  const [hasMoreQuizzes, setHasMoreQuizzes] = useState(false);
+  const [quizzesPage, setQuizzesPage] = useState(1);
+  const [isQuizzesLoading, setIsQuizzesLoading] = useState(false);
+
+  const loadSavedQuizzes = useCallback((page = 1, search = "", append = false) => {
+    setIsQuizzesLoading(true);
+    fetch(`${SERVER_URL}/api/quizzes?page=${page}&limit=20&search=${encodeURIComponent(search)}`)
       .then((res) => res.json())
       .then((data) => {
         if (data && data.quizzes) {
-          setSavedQuizzes(data.quizzes);
+          if (append) {
+            setSavedQuizzes((prev) => [...prev, ...data.quizzes]);
+          } else {
+            setSavedQuizzes(data.quizzes);
+          }
+          setHasMoreQuizzes(!!data.hasMore);
+          setQuizzesPage(page);
         }
       })
-      .catch((err) => console.error("Failed to load quizzes", err));
-  }
+      .catch((err) => console.error("Failed to load quizzes", err))
+      .finally(() => setIsQuizzesLoading(false));
+  }, []);
 
   useEffect(() => {
     loadSavedQuizzes();
@@ -517,6 +529,10 @@ function App() {
               icon={icon}
               joinCode={joinCode}
               savedQuizzes={savedQuizzes}
+              hasMoreQuizzes={hasMoreQuizzes}
+              isQuizzesLoading={isQuizzesLoading}
+              quizzesPage={quizzesPage}
+              onLoadSavedQuizzes={loadSavedQuizzes}
               isCreating={pendingAction === "creating"}
               isJoining={pendingAction === "joining"}
               onNameChange={setName}

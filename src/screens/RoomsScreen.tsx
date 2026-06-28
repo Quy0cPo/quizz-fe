@@ -1,4 +1,4 @@
-import { useState, FormEvent } from "react";
+import { useState, FormEvent, useEffect } from "react";
 import { GeneratedQuiz } from "../types";
 import { motion, AnimatePresence } from "framer-motion";
 import { Input } from "../components/ui/Input";
@@ -12,6 +12,10 @@ export function RoomsScreen({
   icon,
   joinCode,
   savedQuizzes,
+  hasMoreQuizzes,
+  isQuizzesLoading,
+  quizzesPage,
+  onLoadSavedQuizzes,
   isCreating,
   isJoining,
   onNameChange,
@@ -25,6 +29,10 @@ export function RoomsScreen({
   icon: string;
   joinCode: string;
   savedQuizzes: GeneratedQuiz[];
+  hasMoreQuizzes?: boolean;
+  isQuizzesLoading?: boolean;
+  quizzesPage?: number;
+  onLoadSavedQuizzes?: (page?: number, search?: string, append?: boolean) => void;
   isCreating: boolean;
   isJoining: boolean;
   onNameChange: (value: string) => void;
@@ -41,10 +49,16 @@ export function RoomsScreen({
 
   const ICONS = ["🐶", "🐱", "🦊", "🐻", "🐼", "🐸", "🐰", "🐯", "🐍", "🐲", "🦁", "🐵", "🐧", "🦄", "🦉", "🐙"];
 
-  const filteredQuizzes = savedQuizzes.filter((quiz) => {
-    const query = searchTopic.toLowerCase();
-    return quiz.title.toLowerCase().includes(query) || quiz.topic.toLowerCase().includes(query);
-  });
+  useEffect(() => {
+    if (!onLoadSavedQuizzes) return;
+    const timeout = setTimeout(() => {
+      onLoadSavedQuizzes(1, searchTopic, false);
+    }, 400);
+    return () => clearTimeout(timeout);
+  }, [searchTopic, onLoadSavedQuizzes]);
+
+  // We no longer filter client-side, the server returns the filtered results!
+  const filteredQuizzes = savedQuizzes;
 
   const handleHostClick = () => {
     onCreateRoomWithQuiz(selectedQuiz);
@@ -271,6 +285,21 @@ export function RoomsScreen({
                           </div>
                         </button>
                       ))}
+                      
+                      {hasMoreQuizzes && (
+                        <Button 
+                          variant="outline" 
+                          className="w-full mt-4 h-12 border-2 border-slate-800 text-slate-300 hover:bg-slate-800 hover:text-slate-50"
+                          disabled={isQuizzesLoading}
+                          onClick={() => {
+                            if (onLoadSavedQuizzes) {
+                              onLoadSavedQuizzes((quizzesPage || 1) + 1, searchTopic, true);
+                            }
+                          }}
+                        >
+                          {isQuizzesLoading ? "Loading..." : "Load More Quizzes"}
+                        </Button>
+                      )}
                     </div>
                   )}
                 </div>
